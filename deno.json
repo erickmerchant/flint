@@ -3,9 +3,9 @@
 	"version": "0.1.0",
 	"license": "MIT",
 	"exports": {
-		"/dev": "./dev.ts",
-		"/serve": "./serve.ts",
-		"/build": "./build.ts"
+		"./dev": "./dev.ts",
+		"./serve": "./serve.ts",
+		"./build": "./build.ts"
 	},
 	"unstable": ["temporal"],
 	"imports": {
