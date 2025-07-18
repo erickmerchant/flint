@@ -1,0 +1,41 @@
+{
+	"name": "@flint/framework",
+	"version": "0.1.0",
+	"license": "MIT",
+	"exports": {
+		"/dev": "./dev.ts",
+		"/serve": "./serve.ts",
+		"/build": "./build.ts"
+	},
+	"unstable": ["temporal"],
+	"imports": {
+		"@std/async": "jsr:@std/async@^1.0.13",
+		"@std/crypto": "jsr:@std/crypto@^1.0.4",
+		"@std/encoding": "jsr:@std/encoding@^1.0.10",
+		"@std/fs": "jsr:@std/fs@^1.0.17",
+		"@std/http": "jsr:@std/http@^1.0.19",
+		"@std/path": "jsr:@std/path@^1.0.9",
+		"handcraft": "npm:handcraft",
+		"lightningcss": "npm:lightningcss@^1.29.3"
+	},
+	"compilerOptions": {
+		"types": ["./types.d.ts"],
+		"lib": [
+			"dom",
+			"dom.iterable",
+			"dom.asynciterable",
+			"es2024",
+			"deno.ns",
+			"deno.unstable"
+		],
+		"noImplicitAny": false
+	},
+	"lint": {
+		"rules": {
+			"exclude": ["no-explicit-any"]
+		}
+	},
+	"fmt": {
+		"useTabs": true
+	}
+}
