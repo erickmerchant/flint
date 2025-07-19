@@ -106,7 +106,7 @@ export default async function (config: Config) {
 		Path.join(distDir, "serve.ts"),
 		`
 		import * as Path from "@std/path";
-		import serve from "@flint/framework/serve.ts";
+		import serve from "@flint/framework/serve";
 
 		const { default: app } = await import(Path.join(Deno.cwd(), "flint.ts"));
 		const urls = ${JSON.stringify(config.urls)};
