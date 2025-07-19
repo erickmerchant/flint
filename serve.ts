@@ -2,6 +2,10 @@ import * as Path from "@std/path";
 import { contentType } from "@std/media-types";
 import { serveDir } from "@std/http/file-server";
 
+const fingerprintURLPattern = new URLPattern({
+	pathname: "*-([A-Z0-9]{0,8}).*",
+});
+
 export default function (
 	config: Config,
 ): (req: Request) => Promise<Response> {
@@ -10,11 +14,9 @@ export default function (
 	return async function (req: Request): Promise<Response> {
 		const url = new URL(req.url);
 		const headers: Array<string> = [];
-		const fingerprinted = Path.extname(
-			Path.basename(url.pathname, Path.extname(url.pathname)),
-		) !== "";
+		const hasFingerprint = fingerprintURLPattern.test(url);
 
-		if (fingerprinted) {
+		if (hasFingerprint) {
 			headers.push("Cache-Control: public, max-age=31536000, immutable");
 		}
 
@@ -24,7 +26,7 @@ export default function (
 			quiet: true,
 		});
 
-		if (response.status === 404 && !fingerprinted) {
+		if (response.status === 404 && !hasFingerprint) {
 			for (const route of config.routes) {
 				const pattern = route.pattern instanceof URLPattern
 					? route.pattern
@@ -37,6 +39,7 @@ export default function (
 						params: match.pathname.groups,
 						urls: config.urls,
 						input: config.input,
+						output: config.output,
 					});
 
 					if (result instanceof Response) return result;
@@ -65,6 +68,7 @@ export default function (
 					params: {},
 					urls: config.urls,
 					input: config.input,
+					output: config.output,
 				})
 			);
 

@@ -1,13 +1,20 @@
 import * as Path from "@std/path";
+import * as Fs from "@std/fs";
 import { debounce } from "@std/async/debounce";
 import { contentType } from "@std/media-types";
 
-export default function (config: Config) {
+export default async function (config: Config) {
 	config.urls = new Proxy({}, {
 		get(_, key) {
 			return key;
 		},
 	});
+
+	const distDir = Path.join(Deno.cwd(), config.output);
+
+	await Fs.emptyDir(distDir);
+
+	await Fs.ensureDir(distDir);
 
 	Deno.serve(
 		{
@@ -58,8 +65,9 @@ export default function (config: Config) {
 					let result = await route.handler({
 						pathname: url.pathname,
 						params: match.pathname.groups,
-						input: config.input,
 						urls: config.urls,
+						input: config.input,
+						output: config.output,
 					});
 
 					if (result instanceof Response) {
@@ -102,6 +110,7 @@ export default function (config: Config) {
 						pathname: url.pathname,
 						params: {},
 						input: config.input,
+						output: config.output,
 						urls: config.urls,
 					});
 

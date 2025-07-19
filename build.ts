@@ -1,7 +1,7 @@
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 import { contentType } from "@std/media-types";
-import { encodeBase64Url } from "@std/encoding/base64url";
+import { encodeBase32 } from "@std/encoding/base32";
 import { crypto } from "@std/crypto";
 
 export default async function (config: Config) {
@@ -39,9 +39,10 @@ export default async function (config: Config) {
 					params: match?.pathname?.groups,
 					urls: config.urls,
 					input: config.input,
+					output: config.output,
 				});
 
-				if (result instanceof Response) break;
+				if (result == null || result instanceof Response) break;
 
 				if (typeof result === "string") {
 					result = new TextEncoder().encode(result);
@@ -57,12 +58,12 @@ export default async function (config: Config) {
 
 				if (type !== "text/html" && type !== "application/rss+xml") {
 					const buffer = await crypto.subtle.digest("SHA-256", result);
-					const fingerprint = encodeBase64Url(buffer);
+					const fingerprint = encodeBase32(buffer).substring(0, 8);
 					const withFingerprint = Path.format({
 						root: "/",
 						dir: Path.dirname(file),
-						ext: `.${fingerprint}${Path.extname(file)}`,
-						name: Path.basename(file, Path.extname(file)),
+						ext: Path.extname(file),
+						name: `${Path.basename(file, Path.extname(file))}-${fingerprint}`,
 					});
 
 					config.urls[file] = withFingerprint;
@@ -87,9 +88,10 @@ export default async function (config: Config) {
 			params: {},
 			urls: config.urls,
 			input: config.input,
+			output: config.output,
 		});
 
-		if (!(result instanceof Response)) {
+		if (result != null && !(result instanceof Response)) {
 			const path = Path.join(distDir, config.input, "404.html");
 
 			await Fs.ensureDir(Path.dirname(path));

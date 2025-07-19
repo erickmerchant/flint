@@ -1,14 +1,6 @@
 import dev from "./dev.ts";
 import build from "./build.ts";
 
-type App = {
-	cache: (item: CacheItem) => App;
-	route: (pattern: RoutePattern | RouteHandler, handler?: RouteHandler) => App;
-	output: (output: string) => App;
-	run: () => void;
-	config: () => Config;
-};
-
 export default function (input?: string): App {
 	const config: Config = {
 		input: input ?? "public",
