@@ -109,12 +109,12 @@ export default async function (config: Config) {
 	await Deno.writeTextFile(
 		Path.join(distDir, "serve.ts"),
 		`
-		import * as Path from "@std/path";
 		import serve from "@flint/framework/serve";
+		import app from "${
+			Path.relative(distDir, Path.join(Deno.cwd(), "flint.ts"))
+		}";
 
-		const { default: app } = await import(Path.join(Deno.cwd(), "flint.ts"));
 		const urls = ${JSON.stringify(config.urls)};
-
 		const handler = serve({...app.config(), urls})
 
 		export default {
