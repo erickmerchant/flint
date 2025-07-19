@@ -1,119 +1,104 @@
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
+import { contentType } from "@std/media-types";
 import { encodeBase64Url } from "@std/encoding/base64url";
 import { crypto } from "@std/crypto";
-import { callRoute } from "./serve.ts";
 
-const { config } = await import(Path.join(Deno.cwd(), "flint.ts"));
-const urls = {};
+export default async function (config: Config) {
+	config.urls = {};
 
-const distDir = Path.join(Deno.cwd(), "dist");
-const publicDir = Path.join(Deno.cwd(), "public");
+	const distDir = Path.join(Deno.cwd(), config.output);
+	const publicDir = Path.join(Deno.cwd(), config.input);
 
-if (import.meta.main) {
 	await Fs.emptyDir(distDir);
 
 	await Fs.ensureDir(distDir);
 
-	const files = await Array.fromAsync(
-		Fs.expandGlob(Path.join(publicDir, "**")),
-	);
+	const files: Array<string> = (await Array.fromAsync(
+		Fs.expandGlob(Path.join(publicDir, "**/*")),
+	)).map(({ path }) => path.substring(publicDir.length));
 
-	for (const plugin of config.plugins) {
-		for (const file of files) {
-			const pattern = plugin.pattern instanceof URLPattern
-				? plugin.pattern
-				: new URLPattern({ pathname: plugin.pattern });
-			if (pattern.test(`file://${file.path}`)) {
-				let content = await Deno.readFile(file.path);
+	for (const cache of config.cache) {
+		const item: string | Array<string> = typeof cache === "function"
+			? await cache()
+			: cache;
 
-				content = await plugin.handler({ path: file.path, content, urls });
-
-				let path = Path.join(
-					distDir,
-					"public",
-					file.path.substring(publicDir.length),
-				);
-
-				if (!path.endsWith(".html") && !path.endsWith(".rss")) {
-					const subpath = path.substring(Path.join(distDir, "public").length);
-
-					const buffer = await crypto.subtle.digest("SHA-256", content);
-					const fingerprint = encodeBase64Url(buffer);
-					const withFingerprint = Path.format({
-						root: "/",
-						dir: Path.dirname(path).substring(
-							Path.join(distDir, "public").length,
-						),
-						ext: `.${fingerprint}${Path.extname(path)}`,
-						name: Path.basename(path, Path.extname(path)),
-					});
-
-					urls[subpath] = withFingerprint;
-
-					path = Path.join(distDir, "public", withFingerprint);
-				}
-
-				await Fs.ensureDir(Path.dirname(path));
-
-				await Deno.writeFile(path, content);
-			}
-		}
+		files.push(...(Array.isArray(item) ? item : [item]));
 	}
 
-	const notFoundBody = await callRoute(config.notFound, urls);
+	for (let file of files) {
+		for (const route of config.routes) {
+			const pattern = route.pattern instanceof URLPattern
+				? route.pattern
+				: new URLPattern({ pathname: route.pattern });
+			const match = pattern.exec(`file://${file}`);
 
-	const path = Path.join("dist", "public/404.html");
+			if (match) {
+				let result = await route.handler({
+					pathname: file,
+					params: match?.pathname?.groups,
+					urls: config.urls,
+					input: config.input,
+				});
 
-	await Fs.ensureDir(Path.dirname(path));
+				if (result instanceof Response) break;
 
-	await Deno.writeTextFile(
-		path,
-		notFoundBody,
-	);
+				if (typeof result === "string") {
+					result = new TextEncoder().encode(result);
+				}
 
-	for (const route of config.routes) {
-		let { cache, pattern } = route;
-		if (cache !== false) {
-			const files: Array<string> = [];
-
-			if (
-				(cache === true || cache == null) && typeof pattern === "string" &&
-				!/[\:\?\+\*\{\}\(\)]/.test(pattern)
-			) {
-				files.push(pattern);
-			} else if (typeof cache === "string") {
-				files.push(cache);
-			} else if (Array.isArray(cache)) {
-				files.push(...cache);
-			} else if (typeof cache === "function") {
-				files.push(...(await cache()));
-			}
-
-			pattern = pattern instanceof URLPattern
-				? pattern
-				: new URLPattern({ pathname: pattern });
-
-			for (let file of files) {
-				const match = pattern.exec(new URL(`http://localhost${file}`));
-
-				if (!match) continue;
-
-				const body = await callRoute(route, urls, match.pathname.groups);
+				const type = file.endsWith("/")
+					? "text/html"
+					: (contentType(Path.extname(file)) ?? "text/plain");
 
 				if (file.endsWith("/")) {
 					file += "index.html";
 				}
 
-				const path = Path.join("dist", "public", file);
+				if (type !== "text/html" && type !== "application/rss+xml") {
+					const buffer = await crypto.subtle.digest("SHA-256", result);
+					const fingerprint = encodeBase64Url(buffer);
+					const withFingerprint = Path.format({
+						root: "/",
+						dir: Path.dirname(file),
+						ext: `.${fingerprint}${Path.extname(file)}`,
+						name: Path.basename(file, Path.extname(file)),
+					});
 
-				await Fs.ensureDir(Path.dirname(path));
+					config.urls[file] = withFingerprint;
 
-				await Deno.writeTextFile(
-					path,
-					body,
-				);
+					file = withFingerprint;
+				}
+
+				file = Path.join(distDir, config.input, file);
+
+				await Fs.ensureDir(Path.dirname(file));
+
+				await Deno.writeFile(file, result);
 			}
+		}
+	}
+
+	if (config.notFound) {
+		let result = await config.notFound({
+			pathname: "",
+			params: {},
+			urls: config.urls,
+			input: config.input,
+		});
+
+		if (!(result instanceof Response)) {
+			const path = Path.join(distDir, config.input, "404.html");
+
+			await Fs.ensureDir(Path.dirname(path));
+
+			if (typeof result === "string") {
+				result = new TextEncoder().encode(result);
+			}
+			await Deno.writeFile(
+				path,
+				result,
+			);
 		}
 	}
 
@@ -123,10 +108,10 @@ if (import.meta.main) {
 		import * as Path from "@std/path";
 		import serve from "@flint/framework/serve.ts";
 
-		const { config } = await import(Path.join(Deno.cwd(), "flint.ts"));
-		const urls = ${JSON.stringify(urls)};
+		const { default: app } = await import(Path.join(Deno.cwd(), "flint.ts"));
+		const urls = ${JSON.stringify(config.urls)};
 
-		const handler = serve({...config, urls})
+		const handler = serve({...app.config(), urls})
 
 		export default {
 			fetch(req: Request) {

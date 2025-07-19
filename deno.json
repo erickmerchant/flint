@@ -3,9 +3,13 @@
 	"version": "0.1.0",
 	"license": "MIT",
 	"exports": {
+		"./create": "./create.ts",
 		"./dev": "./dev.ts",
 		"./serve": "./serve.ts",
-		"./build": "./build.ts"
+		"./build": "./build.ts",
+		"./plugins/css": "./plugins/css.ts",
+		"./plugins/file": "./plugins/file.ts",
+		"./plugins/js": "./plugins/js.ts"
 	},
 	"unstable": ["temporal"],
 	"imports": {
@@ -14,8 +18,8 @@
 		"@std/encoding": "jsr:@std/encoding@^1.0.10",
 		"@std/fs": "jsr:@std/fs@^1.0.17",
 		"@std/http": "jsr:@std/http@^1.0.19",
+		"@std/media-types": "jsr:@std/media-types@^1.1.0",
 		"@std/path": "jsr:@std/path@^1.0.9",
-		"handcraft": "npm:handcraft",
 		"lightningcss": "npm:lightningcss@^1.29.3"
 	},
 	"compilerOptions": {

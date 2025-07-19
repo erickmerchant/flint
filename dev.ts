@@ -1,124 +1,124 @@
 import * as Path from "@std/path";
-import { serveDir } from "@std/http/file-server";
 import { debounce } from "@std/async/debounce";
-import { callRoute } from "./serve.ts";
+import { contentType } from "@std/media-types";
 
-const publicDir = Path.join(Deno.cwd(), "public");
-const { config } = await import(Path.join(Deno.cwd(), "flint.ts"));
-const urls = new Proxy({}, {
-	get(_, key) {
-		return key;
-	},
-});
+export default function (config: Config) {
+	config.urls = new Proxy({}, {
+		get(_, key) {
+			return key;
+		},
+	});
 
-export default {
-	async fetch(req: Request) {
-		const url = new URL(req.url);
+	Deno.serve(
+		{
+			port: Deno.args[1] ? +Deno.args[1] : 3000,
+		},
+		async (req) => {
+			const url = new URL(req.url);
 
-		if (url.pathname === "/_watch") {
-			let watcher: Deno.FsWatcher;
-			const body = new ReadableStream({
-				async start(controller) {
-					const enqueue = debounce(() => {
-						controller.enqueue(
-							new TextEncoder().encode(
-								`data: "change"\r\n\r\n`,
-							),
-						);
-					}, 500);
+			if (url.pathname === "/_watch") {
+				let watcher: Deno.FsWatcher;
+				const result = new ReadableStream({
+					async start(controller) {
+						const enqueue = debounce(() => {
+							controller.enqueue(
+								new TextEncoder().encode(
+									`data: "change"\r\n\r\n`,
+								),
+							);
+						}, 500);
 
-					watcher = Deno.watchFs(config.watch);
+						watcher = Deno.watchFs(Deno.cwd());
 
-					for await (const e of watcher) {
-						enqueue();
-					}
-				},
-				cancel() {
-					watcher.close();
-				},
-			});
+						for await (const _e of watcher) {
+							enqueue();
+						}
+					},
+					cancel() {
+						watcher.close();
+					},
+				});
 
-			return new Response(body, {
-				headers: {
-					"Content-Type": "text/event-stream",
-				},
-			});
-		}
+				return new Response(result, {
+					headers: {
+						"Content-Type": "text/event-stream",
+					},
+				});
+			}
 
-		const response: Response | undefined = await serveDir(req, {
-			fsRoot: publicDir,
-			headers: ["Cache-Control: no-store"],
-			quiet: true,
-		});
-
-		if (response.status === 404) {
-			for (const route of config.routes) {
-				const pattern = route.pattern instanceof URLPattern
-					? route.pattern
-					: new URLPattern({ pathname: route.pattern });
-
-				if (pattern.test(url)) {
+			try {
+				for (const route of config.routes) {
+					const pattern = route.pattern instanceof URLPattern
+						? route.pattern
+						: new URLPattern({ pathname: route.pattern });
 					const match = pattern.exec(url);
 
-					if (!match) continue;
+					if (match == null) continue;
 
-					let body = await callRoute(
-						route,
-						urls,
-						match.pathname.groups,
-					);
+					let result = await route.handler({
+						pathname: url.pathname,
+						params: match.pathname.groups,
+						input: config.input,
+						urls: config.urls,
+					});
 
-					const contentType = route.contentType ?? "text/html";
-
-					if (contentType === "text/html") {
-						body += `<script type="module">
-							let esrc = new EventSource("/_watch");
-
-							esrc.addEventListener("message", (e) => {
-									window.location.reload()
-							});
-						</script>
-						`;
+					if (result instanceof Response) {
+						return result;
 					}
 
-					return new Response(body, {
+					const type = url.pathname.endsWith("/")
+						? "text/html"
+						: (contentType(Path.extname(url.pathname)) ?? "text/plain");
+
+					if (type === "text/html") {
+						if (result instanceof Uint8Array) {
+							result = new TextDecoder().decode(result);
+						}
+
+						if (type === "text/html") {
+							result += `<script type="module">
+										let esrc = new EventSource("/_watch");
+
+										esrc.addEventListener("message", (e) => {
+												window.location.reload()
+										});
+									</script>
+									`;
+						}
+					}
+
+					return new Response(result, {
 						status: 200,
 						headers: {
-							"Content-Type": contentType,
+							"Content-Type": type,
+						},
+					});
+				}
+			} catch (e) {
+				console.error(e);
+
+				if (config.notFound) {
+					const result = await config.notFound({
+						pathname: url.pathname,
+						params: {},
+						input: config.input,
+						urls: config.urls,
+					});
+
+					if (result instanceof Response) {
+						return result;
+					}
+
+					return new Response(result, {
+						status: 404,
+						headers: {
+							"Content-Type": "text/html",
 						},
 					});
 				}
 			}
-		} else {
-			for (const plugin of config.plugins) {
-				const pattern = plugin.pattern instanceof URLPattern
-					? plugin.pattern
-					: new URLPattern({ pathname: plugin.pattern });
-				if (pattern.test(url)) {
-					let content = await response.bytes();
 
-					content = await plugin.handler({
-						path: Path.join(publicDir, url.pathname),
-						content,
-						urls,
-					});
-
-					return new Response(content, { ...response });
-				}
-			}
-		}
-
-		if (response.status === 404) {
-			const body: string = await callRoute(config.notFound, urls);
-
-			return new Response(body, {
-				status: 404,
-				headers: {
-					"Content-Type": "text/html",
-				},
-			});
-		}
-
-		return response;
-	},
-};
+			return new Response("Not Found", { status: 404 });
+		},
+	);
+}

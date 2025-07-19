@@ -1,40 +1,42 @@
-type RouteParams = { params: any; urls: Record<string, string> };
+type URLCollection = Record<string, string>;
+
+type RouteParams = {
+	pathname: string;
+	params?: any;
+	urls: URLCollection;
+	input: string;
+};
+
+type RoutePattern = URLPattern | string;
 
 type RouteHandler = (
 	args: RouteParams,
-) => any;
-
-type PluginParams = {
-	path: string;
-	content: Uint8Array<ArrayBufferLike>;
-	urls: Record<string, string>;
-};
-
-type PluginHandler = (
-	args: PluginParams,
-) => Uint8Array<ArrayBufferLike> | Promise<Uint8Array<ArrayBufferLike>>;
+) =>
+	| Uint8Array<ArrayBufferLike>
+	| string
+	| Response
+	| Promise<
+		| Uint8Array<ArrayBufferLike>
+		| string
+		| Response
+	>;
 
 type Route = {
-	cache?:
-		| boolean
-		| string
-		| Array<string>
-		| (() => Array<string> | Promise<Array<string>>);
-	status?: number;
-	contentType?: string;
-	pattern: URLPattern | string;
+	pattern: RoutePattern;
 	handler: RouteHandler;
 };
 
+type CacheItem =
+	| string
+	| Array<string>
+	| (() => string | Array<string>)
+	| (() => Promise<string | Array<string>>);
+
 type Config = {
-	notFound: {
-		handler: RouteHandler;
-	};
+	input: string;
+	output: string;
 	routes: Array<Route>;
-	urls?: Record<string, string>;
-	plugins: Array<{
-		pattern: URLPattern | string;
-		handler: PluginHandler;
-	}>;
-	watch: Array<string>;
+	notFound?: RouteHandler;
+	urls: URLCollection;
+	cache: Array<CacheItem>;
 };

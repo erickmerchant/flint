@@ -1,21 +1,13 @@
 import * as Path from "@std/path";
-import { effect, render } from "handcraft/env/server.js";
+import { contentType } from "@std/media-types";
 import { serveDir } from "@std/http/file-server";
 
 export default function (
-	{
-		routes,
-		urls = new Proxy({}, {
-			get(_, key) {
-				return key;
-			},
-		}),
-		notFound,
-	}: Config,
-) {
-	const distDir = Path.join(Deno.cwd(), "dist");
+	config: Config,
+): (req: Request) => Promise<Response> {
+	const distDir = Path.join(Deno.cwd(), config.output);
 
-	return async (req: Request) => {
+	return async function (req: Request): Promise<Response> {
 		const url = new URL(req.url);
 		const headers: Array<string> = [];
 		const fingerprinted = Path.extname(
@@ -27,40 +19,58 @@ export default function (
 		}
 
 		const response: Response | undefined = await serveDir(req, {
-			fsRoot: Path.join(distDir, "public"),
+			fsRoot: Path.join(distDir, config.input),
 			headers,
 			quiet: true,
 		});
 
-		if (response.status === 404) {
-			for (const route of routes) {
+		if (response.status === 404 && !fingerprinted) {
+			for (const route of config.routes) {
 				const pattern = route.pattern instanceof URLPattern
 					? route.pattern
 					: new URLPattern({ pathname: route.pattern });
+				const match = pattern.exec(url);
 
-				if (pattern.test(url)) {
-					const match = pattern.exec(url);
+				if (match) {
+					const result = await route.handler({
+						pathname: url.pathname,
+						params: match.pathname.groups,
+						urls: config.urls,
+						input: config.input,
+					});
 
-					if (!match) continue;
+					if (result instanceof Response) return result;
 
-					const body = await callRoute(route, urls, match.pathname.groups);
+					const type = url.pathname.endsWith("/")
+						? "text/html"
+						: (contentType(Path.extname(url.pathname)) ?? "text/plain");
 
-					return new Response(body, {
+					return new Response(result, {
 						status: 200,
 						headers: {
-							"Content-Type": route.contentType ?? "text/html",
+							"Content-Type": type,
 						},
 					});
 				}
 			}
 		}
 
-		if (response.status === 404) {
-			const body: string = await Deno.readTextFile(
-				Path.join(distDir, "public/404.html"),
-			).catch(() => callRoute(notFound, urls));
+		if (response.status === 404 && config.notFound != null) {
+			const notFound = config.notFound;
+			const result = await Deno.readTextFile(
+				Path.join(distDir, config.input, "404.html"),
+			).catch(() =>
+				notFound({
+					pathname: url.pathname,
+					params: {},
+					urls: config.urls,
+					input: config.input,
+				})
+			);
 
-			return new Response(body, {
+			if (result instanceof Response) return result;
+
+			return new Response(result, {
 				status: 404,
 				headers: {
 					"Content-Type": "text/html",
@@ -70,24 +80,4 @@ export default function (
 
 		return response;
 	};
-}
-
-export async function callRoute(
-	route: { handler: RouteHandler },
-	urls: Record<string, string>,
-	params?: Record<string, any>,
-) {
-	let body: any = await route.handler({ params, urls });
-
-	if (typeof body !== "string") {
-		const { promise, resolve } = Promise.withResolvers<string>();
-
-		effect(() => {
-			resolve(`<!doctype html>${render(body.deref())}`);
-		});
-
-		body = await promise;
-	}
-
-	return body ?? "";
 }

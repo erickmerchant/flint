@@ -1,11 +1,12 @@
 import * as Path from "@std/path";
 import * as LightningCSS from "lightningcss";
 
-export default function (
-	{ path, content, urls }: PluginParams,
-) {
+export default async function (
+	{ pathname, input, urls }: RouteParams,
+): Promise<Uint8Array<ArrayBufferLike>> {
+	const content = await Deno.readFile(Path.join(Deno.cwd(), input, pathname));
 	const { code } = LightningCSS.transform({
-		filename: path,
+		filename: pathname,
 		code: content,
 		minify: true,
 		sourceMap: false,
@@ -13,7 +14,7 @@ export default function (
 			Url(url) {
 				return {
 					...url,
-					url: urls[Path.resolve(path, url.url)],
+					url: urls[Path.resolve(pathname, url.url)],
 				};
 			},
 		},
