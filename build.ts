@@ -75,6 +75,8 @@ export default async function (config: Config) {
 				await Fs.ensureDir(Path.dirname(file));
 
 				await Deno.writeFile(file, result);
+
+				break;
 			}
 		}
 	}
