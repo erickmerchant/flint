@@ -20,68 +20,76 @@ export default function (
 			headers.push("Cache-Control: public, max-age=31536000, immutable");
 		}
 
-		const response: Response | undefined = await serveDir(req, {
-			fsRoot: Path.join(distDir, config.input),
-			headers,
-			quiet: true,
-		});
+		try {
+			const response = await serveDir(req, {
+				fsRoot: Path.join(distDir, config.input),
+				headers,
+				quiet: true,
+			});
 
-		if (response.status === 404 && !hasFingerprint) {
-			for (const route of config.routes) {
-				const pattern = route.pattern instanceof URLPattern
-					? route.pattern
-					: new URLPattern({ pathname: route.pattern });
-				const match = pattern.exec(url);
+			if (response.status !== 404) return response;
 
-				if (match) {
-					const result = await route.handler({
+			if (!hasFingerprint) {
+				for (const route of config.routes) {
+					const pattern = route.pattern instanceof URLPattern
+						? route.pattern
+						: new URLPattern({ pathname: route.pattern });
+					const match = pattern.exec(url);
+
+					if (match) {
+						const result = await route.handler({
+							pathname: url.pathname,
+							params: match.pathname.groups,
+							urls: config.urls,
+							input: config.input,
+							output: config.output,
+						});
+
+						if (result instanceof Response) return result;
+
+						const type = url.pathname.endsWith("/")
+							? "text/html"
+							: (contentType(Path.extname(url.pathname)) ?? "text/plain");
+
+						return new Response(result, {
+							status: 200,
+							headers: {
+								"Content-Type": type,
+							},
+						});
+					}
+				}
+			}
+
+			if (config.notFound != null) {
+				const notFound = config.notFound;
+				const result = await Deno.readTextFile(
+					Path.join(distDir, config.input, "404.html"),
+				).catch(() =>
+					notFound({
 						pathname: url.pathname,
-						params: match.pathname.groups,
+						params: {},
 						urls: config.urls,
 						input: config.input,
 						output: config.output,
-					});
+					})
+				);
 
-					if (result instanceof Response) return result;
+				if (result instanceof Response) return result;
 
-					const type = url.pathname.endsWith("/")
-						? "text/html"
-						: (contentType(Path.extname(url.pathname)) ?? "text/plain");
-
-					return new Response(result, {
-						status: 200,
-						headers: {
-							"Content-Type": type,
-						},
-					});
-				}
+				return new Response(result, {
+					status: 404,
+					headers: {
+						"Content-Type": "text/html",
+					},
+				});
 			}
+		} catch (e) {
+			console.error(e);
+
+			return new Response("Server Error", { status: 500 });
 		}
 
-		if (response.status === 404 && config.notFound != null) {
-			const notFound = config.notFound;
-			const result = await Deno.readTextFile(
-				Path.join(distDir, config.input, "404.html"),
-			).catch(() =>
-				notFound({
-					pathname: url.pathname,
-					params: {},
-					urls: config.urls,
-					input: config.input,
-					output: config.output,
-				})
-			);
-
-			if (result instanceof Response) return result;
-
-			return new Response(result, {
-				status: 404,
-				headers: {
-					"Content-Type": "text/html",
-				},
-			});
-		}
-
-		return response;
+		return new Response("Not Found", { status: 404 });
 	};
 }

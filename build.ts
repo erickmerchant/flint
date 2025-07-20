@@ -42,7 +42,7 @@ export default async function (config: Config) {
 					output: config.output,
 				});
 
-				if (result == null || result instanceof Response) break;
+				if (result instanceof Response) break;
 
 				if (typeof result === "string") {
 					result = new TextEncoder().encode(result);
@@ -91,7 +91,7 @@ export default async function (config: Config) {
 			output: config.output,
 		});
 
-		if (result != null && !(result instanceof Response)) {
+		if (!(result instanceof Response)) {
 			const path = Path.join(distDir, config.input, "404.html");
 
 			await Fs.ensureDir(Path.dirname(path));

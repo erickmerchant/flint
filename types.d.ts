@@ -8,6 +8,11 @@ type App = {
 
 type URLCollection = Record<string, string>;
 
+type RouteResponse =
+	| Uint8Array<ArrayBufferLike>
+	| string
+	| Response;
+
 type RouteParams = {
 	pathname: string;
 	params?: any;
@@ -21,16 +26,8 @@ type RoutePattern = URLPattern | string;
 type RouteHandler = (
 	args: RouteParams,
 ) =>
-	| Uint8Array<ArrayBufferLike>
-	| string
-	| Response
-	| null
-	| Promise<
-		| Uint8Array<ArrayBufferLike>
-		| string
-		| Response
-		| null
-	>;
+	| RouteResponse
+	| Promise<RouteResponse>;
 
 type Route = {
 	pattern: RoutePattern;

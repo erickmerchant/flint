@@ -37,7 +37,13 @@ export default async function (config: Config) {
 
 						watcher = Deno.watchFs(Deno.cwd());
 
-						for await (const _e of watcher) {
+						for await (const e of watcher) {
+							const paths = e.paths.filter((p) =>
+								!p.startsWith(Path.join(Deno.cwd(), config.output))
+							);
+
+							if (!paths.length) continue;
+
 							enqueue();
 						}
 					},
@@ -54,22 +60,32 @@ export default async function (config: Config) {
 			}
 
 			try {
-				for (const route of config.routes) {
-					const pattern = route.pattern instanceof URLPattern
-						? route.pattern
-						: new URLPattern({ pathname: route.pattern });
-					const match = pattern.exec(url);
+				let result: RouteResponse | false = await Deno.readFile(
+					Path.join(Deno.cwd(), config.output, config.input, url.pathname),
+				).catch(() => false);
 
-					if (match == null) continue;
+				if (!result) {
+					for (const route of config.routes) {
+						const pattern = route.pattern instanceof URLPattern
+							? route.pattern
+							: new URLPattern({ pathname: route.pattern });
+						const match = pattern.exec(url);
 
-					let result = await route.handler({
-						pathname: url.pathname,
-						params: match.pathname.groups,
-						urls: config.urls,
-						input: config.input,
-						output: config.output,
-					});
+						if (match == null) continue;
 
+						result = await route.handler({
+							pathname: url.pathname,
+							params: match.pathname.groups,
+							urls: config.urls,
+							input: config.input,
+							output: config.output,
+						});
+
+						break;
+					}
+				}
+
+				if (result) {
 					if (result instanceof Response) {
 						return result;
 					}
@@ -102,8 +118,6 @@ export default async function (config: Config) {
 						},
 					});
 				}
-			} catch (e) {
-				console.error(e);
 
 				if (config.notFound) {
 					const result = await config.notFound({
@@ -125,6 +139,10 @@ export default async function (config: Config) {
 						},
 					});
 				}
+			} catch (e) {
+				console.error(e);
+
+				return new Response("Server Error", { status: 500 });
 			}
 
 			return new Response("Not Found", { status: 404 });

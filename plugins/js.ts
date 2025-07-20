@@ -3,17 +3,7 @@ import * as Fs from "@std/fs";
 
 export default async function (
 	{ pathname, input, output }: RouteParams,
-): Promise<Uint8Array<ArrayBufferLike> | null> {
-	const outPath = Path.join(Deno.cwd(), output, input, pathname);
-
-	const distFile: Uint8Array<ArrayBufferLike> | null = await Deno.readFile(
-		outPath,
-	).catch(() => null);
-
-	if (distFile != null) {
-		return distFile;
-	}
-
+): Promise<Uint8Array<ArrayBufferLike>> {
 	const tempDirPath = await Deno.makeTempDir();
 
 	const cmd = new Deno.Command(Deno.execPath(), {
@@ -33,12 +23,10 @@ export default async function (
 
 	await cmd.spawn().output();
 
-	let result: Uint8Array<ArrayBufferLike> | null = null;
+	const result = await Deno.readFile(Path.join(tempDirPath, pathname));
 
 	for await (const tempFile of Deno.readDir(tempDirPath)) {
-		if (tempFile.name === Path.basename(pathname)) {
-			result = await Deno.readFile(Path.join(tempDirPath, tempFile.name));
-		} else {
+		if (tempFile.name !== Path.basename(pathname)) {
 			await Fs.ensureDir(
 				Path.join(Deno.cwd(), output, input, Path.dirname(pathname)),
 			);
