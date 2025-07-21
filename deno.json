@@ -3,7 +3,7 @@
 	"version": "0.1.7",
 	"license": "MIT",
 	"exports": {
-		".": "./mod.ts",
+		".": "./lib.ts",
 		"./dev": "./dev.ts",
 		"./serve": "./serve.ts",
 		"./build": "./build.ts",
