@@ -11,8 +11,8 @@ export default function (input?: string): App {
 	};
 
 	const app: App = {
-		cache(item: CacheItem): App {
-			config.cache.push(item);
+		cache(...items: Array<CacheItem>): App {
+			config.cache.push(...items);
 
 			return app;
 		},

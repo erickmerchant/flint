@@ -1,6 +1,5 @@
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
-import { contentType } from "@std/media-types";
 import { encodeBase32 } from "@std/encoding/base32";
 import { crypto } from "@std/crypto";
 
@@ -14,28 +13,32 @@ export default async function (config: Config) {
 
 	await Fs.ensureDir(distDir);
 
-	const files: Array<string> = (await Array.fromAsync(
-		Fs.expandGlob(Path.join(publicDir, "**/*")),
-	)).map(({ path }) => path.substring(publicDir.length));
+	const items: Array<{ fingerprint: boolean; path: string }> =
+		(await Array.fromAsync(
+			Fs.expandGlob(Path.join(publicDir, "**/*")),
+		)).map(({ path }) => {
+			return { fingerprint: true, path: path.substring(publicDir.length) };
+		});
 
-	for (const cache of config.cache) {
-		const item: string | Array<string> = typeof cache === "function"
-			? await cache()
-			: cache;
+	for (let item of config.cache) {
+		item = typeof item === "function" ? await item() : item;
+		item = Array.isArray(item) ? item : [item];
 
-		files.push(...(Array.isArray(item) ? item : [item]));
+		items.push(...item.map((path) => {
+			return { fingerprint: false, path };
+		}));
 	}
 
-	for (let file of files) {
+	for (let { fingerprint, path } of items) {
 		for (const route of config.routes) {
 			const pattern = route.pattern instanceof URLPattern
 				? route.pattern
 				: new URLPattern({ pathname: route.pattern });
-			const match = pattern.exec(`file://${file}`);
+			const match = pattern.exec(`file://${path}`);
 
 			if (match) {
 				let result = await route.handler({
-					pathname: file,
+					pathname: path,
 					params: match?.pathname?.groups,
 					urls: config.urls,
 					input: config.input,
@@ -48,34 +51,30 @@ export default async function (config: Config) {
 					result = new TextEncoder().encode(result);
 				}
 
-				const type = file.endsWith("/")
-					? "text/html"
-					: (contentType(Path.extname(file)) ?? "text/plain");
-
-				if (file.endsWith("/")) {
-					file += "index.html";
+				if (path.endsWith("/")) {
+					path += "index.html";
 				}
 
-				if (type !== "text/html" && type !== "application/rss+xml") {
+				if (fingerprint) {
 					const buffer = await crypto.subtle.digest("SHA-256", result);
 					const fingerprint = encodeBase32(buffer).substring(0, 8);
 					const withFingerprint = Path.format({
 						root: "/",
-						dir: Path.dirname(file),
-						ext: Path.extname(file),
-						name: `${Path.basename(file, Path.extname(file))}-${fingerprint}`,
+						dir: Path.dirname(path),
+						ext: Path.extname(path),
+						name: `${Path.basename(path, Path.extname(path))}-${fingerprint}`,
 					});
 
-					config.urls[file] = withFingerprint;
+					config.urls[path] = withFingerprint;
 
-					file = withFingerprint;
+					path = withFingerprint;
 				}
 
-				file = Path.join(distDir, config.input, file);
+				path = Path.join(distDir, config.input, path);
 
-				await Fs.ensureDir(Path.dirname(file));
+				await Fs.ensureDir(Path.dirname(path));
 
-				await Deno.writeFile(file, result);
+				await Deno.writeFile(path, result);
 
 				break;
 			}
@@ -115,11 +114,11 @@ export default async function (config: Config) {
 		}";
 
 		const urls = ${JSON.stringify(config.urls)};
-		const handler = serve({...app.config(), urls})
+		const fetch = serve({...app.config(), urls})
 
 		export default {
 			fetch(req: Request) {
-				return handler(req);
+				return fetch(req);
 			}
 		}
 	`,

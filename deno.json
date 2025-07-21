@@ -1,9 +1,9 @@
 {
 	"name": "@flint/framework",
-	"version": "0.1.6",
+	"version": "0.1.7",
 	"license": "MIT",
 	"exports": {
-		"./create": "./create.ts",
+		".": "./mod.ts",
 		"./dev": "./dev.ts",
 		"./serve": "./serve.ts",
 		"./build": "./build.ts",

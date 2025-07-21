@@ -21,13 +21,13 @@ export default function (
 		}
 
 		try {
-			const response = await serveDir(req, {
+			const result = await serveDir(req, {
 				fsRoot: Path.join(distDir, config.input),
 				headers,
 				quiet: true,
 			});
 
-			if (response.status !== 404) return response;
+			if (result.status !== 404) return result;
 
 			if (!hasFingerprint) {
 				for (const route of config.routes) {

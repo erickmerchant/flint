@@ -1,7 +1,7 @@
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 import { debounce } from "@std/async/debounce";
-import { contentType } from "@std/media-types";
+import serve from "@flint/framework/serve";
 
 export default async function (config: Config) {
 	config.urls = new Proxy({}, {
@@ -15,6 +15,8 @@ export default async function (config: Config) {
 	await Fs.emptyDir(distDir);
 
 	await Fs.ensureDir(distDir);
+
+	const fetch = serve(config);
 
 	Deno.serve(
 		{
@@ -59,93 +61,29 @@ export default async function (config: Config) {
 				});
 			}
 
-			try {
-				let result: RouteResponse | false = await Deno.readFile(
-					Path.join(Deno.cwd(), config.output, config.input, url.pathname),
-				).catch(() => false);
+			const response = await fetch(req);
 
-				if (!result) {
-					for (const route of config.routes) {
-						const pattern = route.pattern instanceof URLPattern
-							? route.pattern
-							: new URLPattern({ pathname: route.pattern });
-						const match = pattern.exec(url);
+			response.headers.set("cache-control", "no-store");
 
-						if (match == null) continue;
-
-						result = await route.handler({
-							pathname: url.pathname,
-							params: match.pathname.groups,
-							urls: config.urls,
-							input: config.input,
-							output: config.output,
-						});
-
-						break;
-					}
-				}
-
-				if (result) {
-					if (result instanceof Response) {
-						return result;
-					}
-
-					const type = url.pathname.endsWith("/")
-						? "text/html"
-						: (contentType(Path.extname(url.pathname)) ?? "text/plain");
-
-					if (type === "text/html") {
-						if (result instanceof Uint8Array) {
-							result = new TextDecoder().decode(result);
-						}
-
-						if (type === "text/html") {
-							result += `<script type="module">
-										let esrc = new EventSource("/_watch");
-
-										esrc.addEventListener("message", (e) => {
-												window.location.reload()
-										});
-									</script>
-									`;
-						}
-					}
-
-					return new Response(result, {
-						status: 200,
-						headers: {
-							"Content-Type": type,
-						},
-					});
-				}
-
-				if (config.notFound) {
-					const result = await config.notFound({
-						pathname: url.pathname,
-						params: {},
-						input: config.input,
-						output: config.output,
-						urls: config.urls,
-					});
-
-					if (result instanceof Response) {
-						return result;
-					}
-
-					return new Response(result, {
-						status: 404,
-						headers: {
-							"Content-Type": "text/html",
-						},
-					});
-				}
-			} catch (e) {
-				console.error(e);
-
-				return new Response("Server Error", { status: 500 });
+			if (response.headers.get("content-type") !== "text/html") {
+				return response;
 			}
 
-			return new Response("Not Found", { status: 404 });
+			let body = await response.text();
+
+			body += `<script type="module">
+				let esrc = new EventSource("/_watch");
+
+				esrc.addEventListener("message", (e) => {
+						window.location.reload()
+				});
+			</script>
+			`;
+
+			return new Response(body, {
+				status: response.status,
+				headers: response.headers,
+			});
 		},
 	);
 }
