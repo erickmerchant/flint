@@ -1,7 +1,7 @@
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 import { debounce } from "@std/async/debounce";
-import serve from "@flint/framework/serve";
+import serve from "./serve.ts";
 
 export default async function (config: Config) {
 	config.urls = new Proxy({}, {
