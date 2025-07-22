@@ -2,8 +2,9 @@ import * as Path from "@std/path";
 import * as LightningCSS from "lightningcss";
 
 export default async function (
-	{ pathname, input, urls }: RouteParams,
+	{ request, input, urls }: RouteParams,
 ): Promise<Uint8Array<ArrayBufferLike>> {
+	const pathname = new URL(request.url).pathname;
 	const content = await Deno.readFile(Path.join(Deno.cwd(), input, pathname));
 	const { code } = LightningCSS.transform({
 		filename: pathname,

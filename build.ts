@@ -37,8 +37,9 @@ export default async function (config: Config) {
 			const match = pattern.exec(`file://${path}`);
 
 			if (match) {
+				const request = new Request(`file://${path}`);
 				let result = await route.handler({
-					pathname: path,
+					request,
 					params: match?.pathname?.groups,
 					urls: config.urls,
 					input: config.input,
@@ -70,7 +71,7 @@ export default async function (config: Config) {
 					path = withFingerprint;
 				}
 
-				path = Path.join(distDir, config.input, path);
+				path = Path.join(distDir, "files", path);
 
 				await Fs.ensureDir(Path.dirname(path));
 
@@ -83,7 +84,7 @@ export default async function (config: Config) {
 
 	if (config.notFound) {
 		let result = await config.notFound({
-			pathname: "",
+			request: new Request(`file://${Path.join(Deno.cwd(), "404.html")}`),
 			params: {},
 			urls: config.urls,
 			input: config.input,
@@ -91,7 +92,7 @@ export default async function (config: Config) {
 		});
 
 		if (!(result instanceof Response)) {
-			const path = Path.join(distDir, config.input, "404.html");
+			const path = Path.join(distDir, "files/404.html");
 
 			await Fs.ensureDir(Path.dirname(path));
 

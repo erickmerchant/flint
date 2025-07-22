@@ -1,5 +1,5 @@
 type App = {
-	cache: (item: CacheItem) => App;
+	cache: (...items: Array<CacheItem>) => App;
 	route: (pattern: RoutePattern | RouteHandler, handler?: RouteHandler) => App;
 	output: (output: string) => App;
 	run: () => void;
@@ -14,8 +14,8 @@ type RouteResponse =
 	| Response;
 
 type RouteParams = {
-	pathname: string;
-	params?: any;
+	request: Request;
+	params: any;
 	urls: URLCollection;
 	input: string;
 	output: string;

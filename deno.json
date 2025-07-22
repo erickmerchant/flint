@@ -1,6 +1,6 @@
 {
 	"name": "@flint/framework",
-	"version": "0.1.7",
+	"version": "0.1.8",
 	"license": "MIT",
 	"exports": {
 		".": "./mod.ts",
@@ -9,7 +9,10 @@
 		"./build": "./build.ts",
 		"./plugins/css": "./plugins/css.ts",
 		"./plugins/file": "./plugins/file.ts",
-		"./plugins/js": "./plugins/js.ts"
+		"./plugins/js": "./plugins/js.ts",
+		"./guards/json": "./guards/json.ts",
+		"./guards/method": "./guards/method.ts",
+		"./guards/redirect": "./guards/redirect.ts"
 	},
 	"unstable": ["temporal"],
 	"imports": {

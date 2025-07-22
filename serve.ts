@@ -21,13 +21,15 @@ export default function (
 		}
 
 		try {
-			const result = await serveDir(req, {
-				fsRoot: Path.join(distDir, config.input),
-				headers,
-				quiet: true,
-			});
+			const result = req.method === "GET"
+				? await serveDir(req, {
+					fsRoot: Path.join(distDir, "files"),
+					headers,
+					quiet: true,
+				})
+				: null;
 
-			if (result.status !== 404) return result;
+			if (result && result.status !== 404) return result;
 
 			if (!hasFingerprint) {
 				for (const route of config.routes) {
@@ -38,7 +40,7 @@ export default function (
 
 					if (match) {
 						const result = await route.handler({
-							pathname: url.pathname,
+							request: req,
 							params: match.pathname.groups,
 							urls: config.urls,
 							input: config.input,
@@ -67,7 +69,7 @@ export default function (
 					Path.join(distDir, config.input, "404.html"),
 				).catch(() =>
 					notFound({
-						pathname: url.pathname,
+						request: req,
 						params: {},
 						urls: config.urls,
 						input: config.input,
