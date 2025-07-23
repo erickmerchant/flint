@@ -113,7 +113,7 @@ export default async function (config: Config) {
 			Path.relative(distDir, Path.join(Deno.cwd(), "flint.ts"))
 		}";
 
-		const urls = ${JSON.stringify(urls)};
+		const urls : Record<string, string> = ${JSON.stringify(urls)};
 		const resolve = (key: string) => urls[key];
 		const fetch = serve({...app.config()}, resolve)
 
