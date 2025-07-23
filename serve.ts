@@ -8,6 +8,7 @@ const fingerprintURLPattern = new URLPattern({
 
 export default function (
 	config: Config,
+	resolve: (url: string) => string,
 ): (req: Request) => Promise<Response> {
 	const distDir = Path.join(Deno.cwd(), config.output);
 
@@ -42,10 +43,9 @@ export default function (
 						const result = await route.handler({
 							request: req,
 							params: match.pathname.groups,
-							urls: config.urls,
 							input: config.input,
 							output: config.output,
-						});
+						}, resolve);
 
 						if (result instanceof Response) return result;
 
@@ -62,19 +62,22 @@ export default function (
 					}
 				}
 			}
+		} catch (e) {
+			console.error(e);
+		}
 
+		try {
 			if (config.notFound != null) {
 				const notFound = config.notFound;
 				const result = await Deno.readTextFile(
-					Path.join(distDir, config.input, "404.html"),
+					Path.join(distDir, "files/404.html"),
 				).catch(() =>
 					notFound({
 						request: req,
 						params: {},
-						urls: config.urls,
 						input: config.input,
 						output: config.output,
-					})
+					}, resolve)
 				);
 
 				if (result instanceof Response) return result;
@@ -88,8 +91,6 @@ export default function (
 			}
 		} catch (e) {
 			console.error(e);
-
-			return new Response("Server Error", { status: 500 });
 		}
 
 		return new Response("Not Found", { status: 404 });

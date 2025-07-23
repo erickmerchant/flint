@@ -13,18 +13,19 @@ type RouteResponse =
 	| string
 	| Response;
 
-type RouteParams = {
+type RouteContext = {
 	request: Request;
 	params: any;
-	urls: URLCollection;
 	input: string;
 	output: string;
 };
+type RouteResolve = (url: string) => string;
 
 type RoutePattern = URLPattern | string;
 
 type RouteHandler = (
-	args: RouteParams,
+	context: RouteContext,
+	resolve: RouteResolve,
 ) =>
 	| RouteResponse
 	| Promise<RouteResponse>;
@@ -45,6 +46,5 @@ type Config = {
 	output: string;
 	routes: Array<Route>;
 	notFound?: RouteHandler;
-	urls: URLCollection;
 	cache: Array<CacheItem>;
 };

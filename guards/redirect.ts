@@ -1,15 +1,20 @@
 type Location =
 	| string
 	| URL
-	| ((args: RouteParams) => string | URL | Promise<string | URL>);
+	| ((
+		context: RouteContext,
+		resolve: RouteResolve,
+	) => string | URL | Promise<string | URL>);
 
 function redirect(status: number, location: Location): RouteHandler {
-	return async (args: RouteParams) =>
+	return async (context: RouteContext, resolve: RouteResolve) =>
 		new Response(null, {
 			status: status,
 			headers: {
 				Location: `${
-					typeof location === "function" ? await location(args) : location
+					typeof location === "function"
+						? await location(context, resolve)
+						: location
 				}`,
 			},
 		});

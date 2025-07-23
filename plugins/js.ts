@@ -2,7 +2,7 @@ import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 
 export default async function (
-	{ request, input, output }: RouteParams,
+	{ request, input, output }: RouteContext,
 ): Promise<Uint8Array<ArrayBufferLike>> {
 	const pathname = new URL(request.url).pathname;
 	const tempDirPath = await Deno.makeTempDir();

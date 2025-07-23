@@ -4,7 +4,8 @@ import { encodeBase32 } from "@std/encoding/base32";
 import { crypto } from "@std/crypto";
 
 export default async function (config: Config) {
-	config.urls = {};
+	const urls: Record<string, string> = {};
+	const resolve = (key: string) => urls[key];
 
 	const distDir = Path.join(Deno.cwd(), config.output);
 	const publicDir = Path.join(Deno.cwd(), config.input);
@@ -41,10 +42,9 @@ export default async function (config: Config) {
 				let result = await route.handler({
 					request,
 					params: match?.pathname?.groups,
-					urls: config.urls,
 					input: config.input,
 					output: config.output,
-				});
+				}, resolve);
 
 				if (result instanceof Response) break;
 
@@ -66,7 +66,7 @@ export default async function (config: Config) {
 						name: `${Path.basename(path, Path.extname(path))}-${fingerprint}`,
 					});
 
-					config.urls[path] = withFingerprint;
+					urls[path] = withFingerprint;
 
 					path = withFingerprint;
 				}
@@ -86,10 +86,9 @@ export default async function (config: Config) {
 		let result = await config.notFound({
 			request: new Request(`file://${Path.join(Deno.cwd(), "404.html")}`),
 			params: {},
-			urls: config.urls,
 			input: config.input,
 			output: config.output,
-		});
+		}, resolve);
 
 		if (!(result instanceof Response)) {
 			const path = Path.join(distDir, "files/404.html");
@@ -114,7 +113,7 @@ export default async function (config: Config) {
 			Path.relative(distDir, Path.join(Deno.cwd(), "flint.ts"))
 		}";
 
-		const urls = ${JSON.stringify(config.urls)};
+		const urls = ${JSON.stringify(urls)};
 		const fetch = serve({...app.config(), urls})
 
 		export default {

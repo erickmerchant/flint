@@ -4,7 +4,7 @@ type MethodGuardRouteHandler = {
 	patch: (callback: RouteHandler) => MethodGuardRouteHandler;
 	put: (callback: RouteHandler) => MethodGuardRouteHandler;
 	delete: (callback: RouteHandler) => MethodGuardRouteHandler;
-	(args: RouteParams):
+	(context: RouteContext, resolve: RouteResolve):
 		| RouteResponse
 		| Promise<RouteResponse>;
 };
@@ -13,12 +13,13 @@ function api(method: string, handler: RouteHandler) {
 	const handlers: Record<string, RouteHandler> = { [method]: handler };
 
 	const guard: MethodGuardRouteHandler = function (
-		args: RouteParams,
+		context: RouteContext,
+		resolve: RouteResolve,
 	):
 		| RouteResponse
 		| Promise<RouteResponse> {
-		if (handlers[args.request.method.toLowerCase()] != null) {
-			return handlers[args.request.method.toLowerCase()](args);
+		if (handlers[context.request.method.toLowerCase()] != null) {
+			return handlers[context.request.method.toLowerCase()](context, resolve);
 		}
 
 		return new Response(null, { status: 405 });

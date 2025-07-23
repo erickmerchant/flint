@@ -4,11 +4,7 @@ import { debounce } from "@std/async/debounce";
 import serve from "./serve.ts";
 
 export default async function (config: Config) {
-	config.urls = new Proxy({}, {
-		get(_, key) {
-			return key;
-		},
-	});
+	const resolve = (key: string) => key;
 
 	const distDir = Path.join(Deno.cwd(), config.output);
 
@@ -16,7 +12,7 @@ export default async function (config: Config) {
 
 	await Fs.ensureDir(distDir);
 
-	const fetch = serve(config);
+	const fetch = serve(config, resolve);
 
 	Deno.serve(
 		{

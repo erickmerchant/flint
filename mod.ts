@@ -7,7 +7,6 @@ export default function (input?: string): App {
 		output: "dist",
 		cache: [],
 		routes: [],
-		urls: {},
 	};
 
 	const app: App = {

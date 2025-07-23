@@ -1,6 +1,8 @@
-export default function (callback: (args: RouteParams) => any): RouteHandler {
-	return async (args: RouteParams) => {
-		let result = await callback(args);
+export default function (
+	callback: (context: RouteContext, resolve: RouteResolve) => any,
+): RouteHandler {
+	return async (context: RouteContext, resolve: RouteResolve) => {
+		let result = await callback(context, resolve);
 
 		if (result instanceof Response) {
 			return result;
