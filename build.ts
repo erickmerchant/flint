@@ -114,7 +114,8 @@ export default async function (config: Config) {
 		}";
 
 		const urls = ${JSON.stringify(urls)};
-		const fetch = serve({...app.config(), urls})
+		const resolve = (key: string) => urls[key];
+		const fetch = serve({...app.config()}, resolve)
 
 		export default {
 			fetch(req: Request) {
