@@ -1,9 +1,14 @@
-type MethodGuardRouteHandler = {
-	get: (callback: RouteHandler) => MethodGuardRouteHandler;
-	post: (callback: RouteHandler) => MethodGuardRouteHandler;
-	patch: (callback: RouteHandler) => MethodGuardRouteHandler;
-	put: (callback: RouteHandler) => MethodGuardRouteHandler;
-	delete: (callback: RouteHandler) => MethodGuardRouteHandler;
+type MethodGuardMethod = (callback: RouteHandler) => MethodGuardRouteHandler;
+
+type MethodGuardMethods = {
+	get: MethodGuardMethod;
+	post: MethodGuardMethod;
+	patch: MethodGuardMethod;
+	put: MethodGuardMethod;
+	delete: MethodGuardMethod;
+};
+
+type MethodGuardRouteHandler = MethodGuardMethods & {
 	(context: RouteContext, resolve: RouteResolve):
 		| RouteResponse
 		| Promise<RouteResponse>;
@@ -25,59 +30,37 @@ function api(method: string, handler: RouteHandler) {
 		return new Response(null, { status: 405 });
 	};
 
-	guard.get = (handler: RouteHandler): MethodGuardRouteHandler => {
-		handlers.get = handler;
+	function getMethod(
+		guard: MethodGuardRouteHandler,
+		handlers: Record<string, RouteHandler>,
+		m: string,
+	): MethodGuardMethod {
+		return (handler: RouteHandler): MethodGuardRouteHandler => {
+			handlers[m] = handler;
 
-		return guard;
-	};
+			return guard;
+		};
+	}
 
-	guard.post = (handler: RouteHandler): MethodGuardRouteHandler => {
-		handlers.post = handler;
-
-		return guard;
-	};
-
-	guard.patch = (handler: RouteHandler): MethodGuardRouteHandler => {
-		handlers.patch = handler;
-
-		return guard;
-	};
-
-	guard.put = (handler: RouteHandler): MethodGuardRouteHandler => {
-		handlers.put = handler;
-
-		return guard;
-	};
-
-	guard.delete = (handler: RouteHandler): MethodGuardRouteHandler => {
-		handlers.delete = handler;
-
-		return guard;
-	};
+	guard.get = getMethod(guard, handlers, "get");
+	guard.post = getMethod(guard, handlers, "post");
+	guard.patch = getMethod(guard, handlers, "patch");
+	guard.put = getMethod(guard, handlers, "put");
+	guard.delete = getMethod(guard, handlers, "delete");
 
 	return guard;
 }
 
+function initMethod(m: string): MethodGuardMethod {
+	return (handler: RouteHandler): MethodGuardRouteHandler => {
+		return api(m, handler);
+	};
+}
+
 export default {
-	get(handler: RouteHandler): MethodGuardRouteHandler {
-		return api("get", handler);
-	},
-	post(handler: RouteHandler): MethodGuardRouteHandler {
-		return api("post", handler);
-	},
-	patch(handler: RouteHandler): MethodGuardRouteHandler {
-		return api("patch", handler);
-	},
-	put(handler: RouteHandler): MethodGuardRouteHandler {
-		return api("put", handler);
-	},
-	delete(handler: RouteHandler): MethodGuardRouteHandler {
-		return api("delete", handler);
-	},
-} as {
-	get: (callback: RouteHandler) => MethodGuardRouteHandler;
-	post: (callback: RouteHandler) => MethodGuardRouteHandler;
-	patch: (callback: RouteHandler) => MethodGuardRouteHandler;
-	put: (callback: RouteHandler) => MethodGuardRouteHandler;
-	delete: (callback: RouteHandler) => MethodGuardRouteHandler;
-};
+	get: initMethod("get"),
+	post: initMethod("post"),
+	patch: initMethod("patch"),
+	put: initMethod("put"),
+	delete: initMethod("delete"),
+} as MethodGuardMethods;

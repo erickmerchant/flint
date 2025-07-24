@@ -6,6 +6,8 @@ type Location =
 		resolve: RouteResolve,
 	) => string | URL | Promise<string | URL>);
 
+type InitMethod = (location: Location) => RouteHandler;
+
 function redirect(status: number, location: Location): RouteHandler {
 	return async (context: RouteContext, resolve: RouteResolve) =>
 		new Response(null, {
@@ -20,18 +22,18 @@ function redirect(status: number, location: Location): RouteHandler {
 		});
 }
 
+function initMethod(status: number): InitMethod {
+	return (
+		location: Location,
+	): RouteHandler => {
+		return redirect(status, location);
+	};
+}
+
 export default {
-	temporary(
-		location: Location,
-	): RouteHandler {
-		return redirect(307, location);
-	},
-	permanent(
-		location: Location,
-	): RouteHandler {
-		return redirect(308, location);
-	},
+	temporary: initMethod(307),
+	permanent: initMethod(308),
 } as {
-	temporary(location: Location): RouteHandler;
-	permanent(location: Location): RouteHandler;
+	temporary: InitMethod;
+	permanent: InitMethod;
 };
