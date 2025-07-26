@@ -1,38 +1,75 @@
+type Config = {
+	input: string;
+	output: string;
+	routes: Array<Route>;
+	plugins: Array<Plugin>;
+	notFound?: RouteCallback;
+	cache: Array<CacheItem>;
+	resolve: (url: string) => string;
+};
+
 type App = {
 	cache: (...items: Array<CacheItem>) => App;
-	route: (pattern: RoutePattern | RouteHandler, handler?: RouteHandler) => App;
-	output: (output: string) => App;
+	route: (
+		pattern: URLPattern | RouteCallback,
+		callback: RouteCallback,
+	) => App;
+	use: (
+		pattern: URLPattern,
+		callback?: PluginCallback,
+	) => App;
 	run: () => void;
 	config: () => Config;
 };
 
-type URLCollection = Record<string, string>;
+type Params = Record<string, string | undefined>;
 
-type RouteResponse =
+type RouteCallbackResponse =
 	| Uint8Array<ArrayBufferLike>
 	| string
 	| Response;
 
-type RouteContext = {
+type RouteCallbackContext = {
 	request: Request;
-	params: any;
+	params?: Params;
+	pathname: string;
 	input: string;
 	output: string;
+	resolve: (url: string) => string;
 };
-type RouteResolve = (url: string) => string;
 
-type RoutePattern = URLPattern | string;
-
-type RouteHandler = (
-	context: RouteContext,
-	resolve: RouteResolve,
+type RouteCallback = (
+	context: RouteCallbackContext,
 ) =>
-	| RouteResponse
-	| Promise<RouteResponse>;
+	| RouteCallbackResponse
+	| Promise<RouteCallbackResponse>;
 
 type Route = {
-	pattern: RoutePattern;
-	handler: RouteHandler;
+	pattern: URLPattern;
+	callback: RouteCallback;
+};
+
+type PluginCallbackResponse =
+	| Uint8Array<ArrayBufferLike>
+	| string;
+
+type PluginCallbackContext = {
+	params?: Params;
+	pathname: string;
+	input: string;
+	output: string;
+	resolve: (url: string) => string;
+};
+
+type PluginCallback = (
+	context: PluginCallbackContext,
+) =>
+	| PluginCallbackResponse
+	| Promise<PluginCallbackResponse>;
+
+type Plugin = {
+	pattern: URLPattern;
+	callback?: PluginCallback;
 };
 
 type CacheItem =
@@ -40,11 +77,3 @@ type CacheItem =
 	| Array<string>
 	| (() => string | Array<string>)
 	| (() => Promise<string | Array<string>>);
-
-type Config = {
-	input: string;
-	output: string;
-	routes: Array<Route>;
-	notFound?: RouteHandler;
-	cache: Array<CacheItem>;
-};

@@ -1,12 +1,14 @@
 import dev from "./dev.ts";
 import build from "./build.ts";
 
-export default function (input?: string): App {
+export default function (input: string, output: string): App {
 	const config: Config = {
 		input: input ?? "public",
-		output: "dist",
+		output: output ?? "dist",
 		cache: [],
 		routes: [],
+		plugins: [],
+		resolve: (key: string) => key,
 	};
 
 	const app: App = {
@@ -15,17 +17,31 @@ export default function (input?: string): App {
 
 			return app;
 		},
-		route(pattern: RoutePattern | RouteHandler, handler?: RouteHandler): App {
+		route(
+			pattern: URLPattern | string | RouteCallback,
+			callback: RouteCallback,
+		): App {
 			if (typeof pattern === "function") {
 				config.notFound = pattern;
-			} else if (handler != null) {
-				config.routes.push({ pattern, handler });
+			} else {
+				pattern = pattern instanceof URLPattern
+					? pattern
+					: new URLPattern({ pathname: pattern });
+
+				config.routes.push({ pattern, callback });
 			}
 
 			return app;
 		},
-		output(output: string): App {
-			config.output = output;
+		use(
+			pattern: URLPattern | string,
+			callback?: PluginCallback,
+		): App {
+			pattern = pattern instanceof URLPattern
+				? pattern
+				: new URLPattern({ pathname: pattern });
+
+			config.plugins.push({ pattern, callback });
 
 			return app;
 		},

@@ -3,12 +3,11 @@ import { contentType } from "@std/media-types";
 import { serveDir } from "@std/http/file-server";
 
 const fingerprintURLPattern = new URLPattern({
-	pathname: "*-([A-Z0-9]{0,8}).*",
+	pathname: "*-([A-Za-z0-9_-]{16}).*",
 });
 
 export default function (
 	config: Config,
-	resolve: (url: string) => string,
 ): (req: Request) => Promise<Response> {
 	const distDir = Path.join(Deno.cwd(), config.output);
 
@@ -34,18 +33,17 @@ export default function (
 
 			if (!hasFingerprint) {
 				for (const route of config.routes) {
-					const pattern = route.pattern instanceof URLPattern
-						? route.pattern
-						: new URLPattern({ pathname: route.pattern });
-					const match = pattern.exec(url);
+					const match = route.pattern.exec(url);
 
 					if (match) {
-						const result = await route.handler({
+						const result = await route.callback({
 							request: req,
 							params: match.pathname.groups,
+							pathname: url.pathname,
 							input: config.input,
 							output: config.output,
-						}, resolve);
+							resolve: config.resolve,
+						});
 
 						if (result instanceof Response) return result;
 
@@ -75,9 +73,11 @@ export default function (
 					notFound({
 						request: req,
 						params: {},
+						pathname: url.pathname,
 						input: config.input,
 						output: config.output,
-					}, resolve)
+						resolve: config.resolve,
+					})
 				);
 
 				if (result instanceof Response) return result;

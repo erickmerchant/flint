@@ -9,7 +9,7 @@
     "jsr:@std/fs@^1.0.17": "1.0.19",
     "jsr:@std/fs@^1.0.19": "1.0.19",
     "jsr:@std/html@^1.0.4": "1.0.4",
-    "jsr:@std/http@^1.0.19": "1.0.20",
+    "jsr:@std/http@^1.0.20": "1.0.20",
     "jsr:@std/internal@^1.0.9": "1.0.10",
     "jsr:@std/media-types@^1.1.0": "1.1.0",
     "jsr:@std/net@^1.0.4": "1.0.4",
@@ -166,7 +166,7 @@
       "jsr:@std/crypto@^1.0.4",
       "jsr:@std/encoding@^1.0.10",
       "jsr:@std/fs@^1.0.17",
-      "jsr:@std/http@^1.0.19",
+      "jsr:@std/http@^1.0.20",
       "jsr:@std/media-types@^1.1.0",
       "jsr:@std/path@^1.0.9",
       "npm:lightningcss@^1.29.3"

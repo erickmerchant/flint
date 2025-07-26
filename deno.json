@@ -1,6 +1,6 @@
 {
 	"name": "@flint/framework",
-	"version": "0.2.3",
+	"version": "0.3.0",
 	"license": "MIT",
 	"exports": {
 		".": "./mod.ts",
@@ -8,39 +8,23 @@
 		"./serve": "./serve.ts",
 		"./build": "./build.ts",
 		"./plugins/css": "./plugins/css.ts",
-		"./plugins/file": "./plugins/file.ts",
 		"./plugins/js": "./plugins/js.ts",
-		"./guards/json": "./guards/json.ts",
-		"./guards/method": "./guards/method.ts",
-		"./guards/redirect": "./guards/redirect.ts"
+		"./handlers/json": "./handlers/json.ts",
+		"./handlers/method": "./handlers/method.ts",
+		"./handlers/redirect": "./handlers/redirect.ts"
 	},
-	"unstable": ["temporal"],
 	"imports": {
 		"@std/async": "jsr:@std/async@^1.0.13",
 		"@std/crypto": "jsr:@std/crypto@^1.0.4",
 		"@std/encoding": "jsr:@std/encoding@^1.0.10",
 		"@std/fs": "jsr:@std/fs@^1.0.17",
-		"@std/http": "jsr:@std/http@^1.0.19",
+		"@std/http": "jsr:@std/http@^1.0.20",
 		"@std/media-types": "jsr:@std/media-types@^1.1.0",
 		"@std/path": "jsr:@std/path@^1.0.9",
 		"lightningcss": "npm:lightningcss@^1.29.3"
 	},
 	"compilerOptions": {
-		"types": ["./types.d.ts"],
-		"lib": [
-			"dom",
-			"dom.iterable",
-			"dom.asynciterable",
-			"es2024",
-			"deno.ns",
-			"deno.unstable"
-		],
-		"noImplicitAny": false
-	},
-	"lint": {
-		"rules": {
-			"exclude": ["no-explicit-any"]
-		}
+		"types": ["./types.d.ts"]
 	},
 	"fmt": {
 		"useTabs": true

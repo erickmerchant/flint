@@ -1,18 +1,16 @@
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
-import { debounce } from "@std/async/debounce";
-import serve from "./serve.ts";
+import { contentType } from "@std/media-types";
+import watch from "./watch.ts";
 
 export default async function (config: Config) {
-	const resolve = (key: string) => key;
-
 	const distDir = Path.join(Deno.cwd(), config.output);
 
 	await Fs.emptyDir(distDir);
 
 	await Fs.ensureDir(distDir);
 
-	const fetch = serve(config, resolve);
+	const fetch = serve(config);
 
 	Deno.serve(
 		{
@@ -22,39 +20,7 @@ export default async function (config: Config) {
 			const url = new URL(req.url);
 
 			if (url.pathname === "/_watch") {
-				let watcher: Deno.FsWatcher;
-				const result = new ReadableStream({
-					async start(controller) {
-						const enqueue = debounce(() => {
-							controller.enqueue(
-								new TextEncoder().encode(
-									`data: "change"\r\n\r\n`,
-								),
-							);
-						}, 500);
-
-						watcher = Deno.watchFs(Deno.cwd());
-
-						for await (const e of watcher) {
-							const paths = e.paths.filter((p) =>
-								!p.startsWith(Path.join(Deno.cwd(), config.output))
-							);
-
-							if (!paths.length) continue;
-
-							enqueue();
-						}
-					},
-					cancel() {
-						watcher.close();
-					},
-				});
-
-				return new Response(result, {
-					headers: {
-						"Content-Type": "text/event-stream",
-					},
-				});
+				return watch(config.output);
 			}
 
 			const response = await fetch(req);
@@ -82,4 +48,110 @@ export default async function (config: Config) {
 			});
 		},
 	);
+}
+
+function serve(
+	config: Config,
+): (req: Request) => Promise<Response> {
+	const distDir = Path.join(Deno.cwd(), config.output);
+
+	return async function (req: Request): Promise<Response> {
+		const url = new URL(req.url);
+
+		try {
+			for (const route of config.routes) {
+				const match = route.pattern.exec(url);
+
+				if (match) {
+					const result = await route.callback({
+						request: req,
+						params: match.pathname.groups,
+						pathname: url.pathname,
+						input: config.input,
+						output: config.output,
+						resolve: config.resolve,
+					});
+
+					if (result instanceof Response) return result;
+
+					const type = url.pathname.endsWith("/")
+						? "text/html"
+						: (contentType(Path.extname(url.pathname)) ?? "text/plain");
+
+					return new Response(result, {
+						status: 200,
+						headers: {
+							"Cache-Control": "no-store",
+							"Content-Type": type,
+						},
+					});
+				}
+			}
+
+			for (const plugin of config.plugins) {
+				const match = plugin.pattern.exec(url);
+
+				if (match) {
+					const result = await plugin.callback?.({
+						params: match?.pathname?.groups,
+						pathname: url.pathname,
+						input: config.input,
+						output: config.output,
+						resolve: config.resolve,
+					}) ??
+						await Deno.readFile(
+							Path.join(Deno.cwd(), config.input, url.pathname),
+						);
+
+					if (result instanceof Response) return result;
+
+					const type = url.pathname.endsWith("/")
+						? "text/html"
+						: (contentType(Path.extname(url.pathname)) ?? "text/plain");
+
+					return new Response(result, {
+						status: 200,
+						headers: {
+							"Cache-Control": "no-store",
+							"Content-Type": type,
+						},
+					});
+				}
+			}
+		} catch (e) {
+			console.error(e);
+		}
+
+		try {
+			if (config.notFound != null) {
+				const notFound = config.notFound;
+				const result = await Deno.readTextFile(
+					Path.join(distDir, "files/404.html"),
+				).catch(() =>
+					notFound({
+						request: req,
+						params: {},
+						pathname: url.pathname,
+						input: config.input,
+						output: config.output,
+						resolve: config.resolve,
+					})
+				);
+
+				if (result instanceof Response) return result;
+
+				return new Response(result, {
+					status: 404,
+					headers: {
+						"Cache-Control": "no-store",
+						"Content-Type": "text/html",
+					},
+				});
+			}
+		} catch (e) {
+			console.error(e);
+		}
+
+		return new Response("Not Found", { status: 404 });
+	};
 }
