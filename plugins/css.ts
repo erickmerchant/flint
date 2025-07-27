@@ -1,9 +1,9 @@
 import * as Path from "@std/path";
 import * as LightningCSS from "lightningcss";
 
-export default async function (
+export default function (
 	{ input, pathname, resolve }: PluginCallbackContext,
-): Promise<PluginCallbackResponse> {
+): PluginCallbackResponse {
 	const filename = Path.join(Deno.cwd(), input, pathname);
 	const { code } = LightningCSS.bundle({
 		filename,
