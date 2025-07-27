@@ -5,10 +5,8 @@ export default async function (
 	{ input, pathname, resolve }: PluginCallbackContext,
 ): Promise<PluginCallbackResponse> {
 	const filename = Path.join(Deno.cwd(), input, pathname);
-	const content = await Deno.readFile(filename);
-	const { code } = LightningCSS.transform({
+	const { code } = LightningCSS.bundle({
 		filename,
-		code: content,
 		minify: true,
 		sourceMap: false,
 		visitor: {
