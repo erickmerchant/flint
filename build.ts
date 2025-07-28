@@ -26,7 +26,15 @@ export default async function (config: Config) {
 			const match = plugin.pattern.exec(`file://${pathname}`);
 
 			if (match) {
-				let result = await plugin.callback?.({
+				const callback: PluginCallback = typeof plugin.callback === "function"
+					? plugin.callback
+					: plugin.callback != null
+					? (await import(Path.join(Deno.cwd(), plugin.callback))).default
+					: () =>
+						Deno.readFile(
+							Path.join(Deno.cwd(), config.input, pathname),
+						);
+				let result = await callback({
 					params: match?.pathname?.groups,
 					pathname,
 					input: config.input,
@@ -86,7 +94,10 @@ export default async function (config: Config) {
 
 			if (match) {
 				const request = new Request(`file://${pathname}`);
-				let result = await route.callback({
+				const callback = typeof route.callback === "function"
+					? route.callback
+					: (await import(Path.join(Deno.cwd(), route.callback))).default;
+				let result = await callback({
 					request,
 					params: match?.pathname?.groups,
 					pathname,
@@ -117,7 +128,11 @@ export default async function (config: Config) {
 	}
 
 	if (config.notFound) {
-		let result = await config.notFound({
+		const callback = typeof config.notFound === "function"
+			? config.notFound
+			: (await import(Path.join(Deno.cwd(), config.notFound))).default;
+
+		let result = await callback({
 			request: new Request("file://404.html"),
 			params: {},
 			pathname: "404.html",

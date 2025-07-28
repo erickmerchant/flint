@@ -3,7 +3,7 @@ type Config = {
 	output: string;
 	routes: Array<Route>;
 	plugins: Array<Plugin>;
-	notFound?: RouteCallback;
+	notFound?: RouteCallback | string;
 	cache: Array<CacheItem>;
 	resolve: (url: string) => string;
 };
@@ -11,12 +11,12 @@ type Config = {
 type App = {
 	cache: (...items: Array<CacheItem>) => App;
 	route: (
-		pattern: URLPattern | RouteCallback,
-		callback: RouteCallback,
+		pattern: URLPattern | string | RouteCallback,
+		callback?: RouteCallback | string,
 	) => App;
 	use: (
-		pattern: URLPattern,
-		callback?: PluginCallback,
+		pattern: URLPattern | string,
+		callback?: PluginCallback | string,
 	) => App;
 	run: () => void;
 	config: () => Config;
@@ -24,12 +24,12 @@ type App = {
 
 type Params = Record<string, string | undefined>;
 
-type RouteCallbackResponse =
+type RouteResponse =
 	| Uint8Array<ArrayBufferLike>
 	| string
 	| Response;
 
-type RouteCallbackContext = {
+type RouteContext = {
 	request: Request;
 	params?: Params;
 	pathname: string;
@@ -39,21 +39,21 @@ type RouteCallbackContext = {
 };
 
 type RouteCallback = (
-	context: RouteCallbackContext,
+	context: RouteContext,
 ) =>
-	| RouteCallbackResponse
-	| Promise<RouteCallbackResponse>;
+	| RouteResponse
+	| Promise<RouteResponse>;
 
 type Route = {
 	pattern: URLPattern;
-	callback: RouteCallback;
+	callback: RouteCallback | string;
 };
 
-type PluginCallbackResponse =
+type PluginResponse =
 	| Uint8Array<ArrayBufferLike>
 	| string;
 
-type PluginCallbackContext = {
+type PluginContext = {
 	params?: Params;
 	pathname: string;
 	input: string;
@@ -62,14 +62,14 @@ type PluginCallbackContext = {
 };
 
 type PluginCallback = (
-	context: PluginCallbackContext,
+	context: PluginContext,
 ) =>
-	| PluginCallbackResponse
-	| Promise<PluginCallbackResponse>;
+	| PluginResponse
+	| Promise<PluginResponse>;
 
 type Plugin = {
 	pattern: URLPattern;
-	callback?: PluginCallback;
+	callback?: PluginCallback | string;
 };
 
 type CacheItem =

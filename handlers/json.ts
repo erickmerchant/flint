@@ -3,11 +3,11 @@ interface ValueMap extends Record<string, Value> {}
 interface ValueArray extends Array<Value> {}
 
 export default function (
-	callback: (context: RouteCallbackContext) => Value | Promise<Value>,
+	callback: (context: RouteContext) => Value | Promise<Value>,
 ): RouteCallback {
 	return async (
-		context: RouteCallbackContext,
-	): Promise<RouteCallbackResponse> => {
+		context: RouteContext,
+	): Promise<RouteResponse> => {
 		let result = await callback(context);
 
 		if (result instanceof Response) {

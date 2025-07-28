@@ -15,10 +15,10 @@ function init(methodName: string): Init {
 		const callbacks: Record<string, RouteCallback> = { [methodName]: callback };
 
 		const guard: MethodRouteCallback = function (
-			context: RouteCallbackContext,
+			context: RouteContext,
 		):
-			| RouteCallbackResponse
-			| Promise<RouteCallbackResponse> {
+			| RouteResponse
+			| Promise<RouteResponse> {
 			if (callbacks[context.request.method.toLowerCase()] != null) {
 				return callbacks[context.request.method.toLowerCase()](context);
 			}

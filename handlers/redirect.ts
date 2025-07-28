@@ -2,7 +2,7 @@ type Location =
 	| string
 	| URL
 	| ((
-		context: RouteCallbackContext,
+		context: RouteContext,
 	) => string | URL | Promise<string | URL>);
 
 type Init = (location: Location) => RouteCallback;
@@ -12,8 +12,8 @@ function init(status: number): Init {
 		location: Location,
 	): RouteCallback => {
 		return async (
-			context: RouteCallbackContext,
-		): Promise<RouteCallbackResponse> =>
+			context: RouteContext,
+		): Promise<RouteResponse> =>
 			new Response(null, {
 				status: status,
 				headers: {

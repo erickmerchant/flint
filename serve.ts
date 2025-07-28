@@ -36,7 +36,10 @@ export default function (
 					const match = route.pattern.exec(url);
 
 					if (match) {
-						const result = await route.callback({
+						const callback = typeof route.callback === "function"
+							? route.callback
+							: (await import(Path.join(Deno.cwd(), route.callback))).default;
+						const result = await callback({
 							request: req,
 							params: match.pathname.groups,
 							pathname: url.pathname,
@@ -69,16 +72,20 @@ export default function (
 				const notFound = config.notFound;
 				const result = await Deno.readTextFile(
 					Path.join(distDir, "files/404.html"),
-				).catch(() =>
-					notFound({
+				).catch(async () => {
+					const callback = typeof notFound === "function"
+						? notFound
+						: (await import(Path.join(Deno.cwd(), notFound))).default;
+
+					return callback({
 						request: req,
 						params: {},
 						pathname: url.pathname,
 						input: config.input,
 						output: config.output,
 						resolve: config.resolve,
-					})
-				);
+					});
+				});
 
 				if (result instanceof Response) return result;
 

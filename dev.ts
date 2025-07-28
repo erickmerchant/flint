@@ -54,6 +54,7 @@ function serve(
 	config: Config,
 ): (req: Request) => Promise<Response> {
 	const distDir = Path.join(Deno.cwd(), config.output);
+	let count = 0;
 
 	return async function (req: Request): Promise<Response> {
 		const url = new URL(req.url);
@@ -63,7 +64,13 @@ function serve(
 				const match = route.pattern.exec(url);
 
 				if (match) {
-					const result = await route.callback({
+					const callback: RouteCallback = typeof route.callback === "function"
+						? route.callback
+						: (await import(
+							Path.join(Deno.cwd(), route.callback) + "#" + count++
+						)).default;
+
+					const result = await callback({
 						request: req,
 						params: match.pathname.groups,
 						pathname: url.pathname,
@@ -92,16 +99,23 @@ function serve(
 				const match = plugin.pattern.exec(url);
 
 				if (match) {
-					const result = await plugin.callback?.({
+					const callback: PluginCallback = typeof plugin.callback === "function"
+						? plugin.callback
+						: plugin.callback != null
+						? (await import(
+							Path.join(Deno.cwd(), plugin.callback) + "#" + count++
+						)).default
+						: () =>
+							Deno.readFile(
+								Path.join(Deno.cwd(), config.input, url.pathname),
+							);
+					const result = await callback({
 						params: match?.pathname?.groups,
 						pathname: url.pathname,
 						input: config.input,
 						output: config.output,
 						resolve: config.resolve,
-					}) ??
-						await Deno.readFile(
-							Path.join(Deno.cwd(), config.input, url.pathname),
-						);
+					});
 
 					if (result instanceof Response) return result;
 
@@ -127,16 +141,21 @@ function serve(
 				const notFound = config.notFound;
 				const result = await Deno.readTextFile(
 					Path.join(distDir, "files/404.html"),
-				).catch(() =>
-					notFound({
+				).catch(async () => {
+					const callback = typeof notFound === "function"
+						? notFound
+						: (await import(Path.join(Deno.cwd(), notFound + "#" + count)))
+							.default;
+
+					return callback({
 						request: req,
 						params: {},
 						pathname: url.pathname,
 						input: config.input,
 						output: config.output,
 						resolve: config.resolve,
-					})
-				);
+					});
+				});
 
 				if (result instanceof Response) return result;
 
