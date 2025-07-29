@@ -1,15 +1,8 @@
 import * as Path from "@std/path";
-import * as Fs from "@std/fs";
 import { contentType } from "@std/media-types";
 import watch from "./watch.ts";
 
-export default async function (config: Config) {
-	const distDir = Path.join(Deno.cwd(), config.output);
-
-	await Fs.emptyDir(distDir);
-
-	await Fs.ensureDir(distDir);
-
+export default function (config: Config) {
 	const fetch = serve(config);
 
 	Deno.serve(
@@ -35,9 +28,22 @@ export default async function (config: Config) {
 
 			body += `<script type="module">
 				let esrc = new EventSource("/_watch");
+				let inError = false;
 
-				esrc.addEventListener("message", (e) => {
-						window.location.reload()
+				esrc.addEventListener("message", () => {
+						inError = false;
+
+						window.location.reload();
+				});
+
+				esrc.addEventListener("error", () => {
+					inError = true;
+				});
+
+				esrc.addEventListener("open", () => {
+					if (inError) {
+						window.location.reload();
+					}
 				});
 			</script>
 			`;
@@ -54,7 +60,6 @@ function serve(
 	config: Config,
 ): (req: Request) => Promise<Response> {
 	const distDir = Path.join(Deno.cwd(), config.output);
-	let count = 0;
 
 	return async function (req: Request): Promise<Response> {
 		const url = new URL(req.url);
@@ -64,15 +69,9 @@ function serve(
 				const match = route.pattern.exec(url);
 
 				if (match) {
-					const callback: RouteCallback = typeof route.callback === "function"
-						? route.callback
-						: (await import(
-							Path.join(Deno.cwd(), route.callback) + "#" + count++
-						)).default;
-
-					const result = await callback({
+					const result = await route.callback({
 						request: req,
-						params: match.pathname.groups,
+						params: match.pathname.groups ?? {},
 						pathname: url.pathname,
 						input: config.input,
 						output: config.output,
@@ -101,16 +100,12 @@ function serve(
 				if (match) {
 					const callback: PluginCallback = typeof plugin.callback === "function"
 						? plugin.callback
-						: plugin.callback != null
-						? (await import(
-							Path.join(Deno.cwd(), plugin.callback) + "#" + count++
-						)).default
 						: () =>
 							Deno.readFile(
 								Path.join(Deno.cwd(), config.input, url.pathname),
 							);
 					const result = await callback({
-						params: match?.pathname?.groups,
+						params: match?.pathname?.groups ?? {},
 						pathname: url.pathname,
 						input: config.input,
 						output: config.output,
@@ -141,13 +136,8 @@ function serve(
 				const notFound = config.notFound;
 				const result = await Deno.readTextFile(
 					Path.join(distDir, "files/404.html"),
-				).catch(async () => {
-					const callback = typeof notFound === "function"
-						? notFound
-						: (await import(Path.join(Deno.cwd(), notFound + "#" + count)))
-							.default;
-
-					return callback({
+				).catch(() => {
+					return notFound({
 						request: req,
 						params: {},
 						pathname: url.pathname,

@@ -3,7 +3,7 @@ type Config = {
 	output: string;
 	routes: Array<Route>;
 	plugins: Array<Plugin>;
-	notFound?: RouteCallback | string;
+	notFound?: RouteCallback;
 	cache: Array<CacheItem>;
 	resolve: (url: string) => string;
 };
@@ -12,11 +12,11 @@ type App = {
 	cache: (...items: Array<CacheItem>) => App;
 	route: (
 		pattern: URLPattern | string | RouteCallback,
-		callback?: RouteCallback | string,
+		callback?: RouteCallback,
 	) => App;
 	use: (
 		pattern: URLPattern | string,
-		callback?: PluginCallback | string,
+		callback?: PluginCallback,
 	) => App;
 	run: () => void;
 	config: () => Config;
@@ -31,7 +31,7 @@ type RouteResponse =
 
 type RouteContext = {
 	request: Request;
-	params?: Params;
+	params: Params;
 	pathname: string;
 	input: string;
 	output: string;
@@ -46,7 +46,7 @@ type RouteCallback = (
 
 type Route = {
 	pattern: URLPattern;
-	callback: RouteCallback | string;
+	callback: RouteCallback;
 };
 
 type PluginResponse =
@@ -54,7 +54,7 @@ type PluginResponse =
 	| string;
 
 type PluginContext = {
-	params?: Params;
+	params: Params;
 	pathname: string;
 	input: string;
 	output: string;
@@ -69,7 +69,7 @@ type PluginCallback = (
 
 type Plugin = {
 	pattern: URLPattern;
-	callback?: PluginCallback | string;
+	callback?: PluginCallback;
 };
 
 type CacheItem =

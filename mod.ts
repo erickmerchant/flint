@@ -19,13 +19,11 @@ export default function (input: string, output: string): App {
 		},
 		route(
 			pattern: URLPattern | string | RouteCallback,
-			callback?: RouteCallback | string,
+			callback?: RouteCallback,
 		): App {
-			if (callback == undefined) {
-				if (typeof pattern === "function" || typeof pattern === "string") {
-					config.notFound = pattern;
-				}
-			} else if (typeof pattern !== "function") {
+			if (typeof pattern === "function" && callback == null) {
+				config.notFound = pattern;
+			} else if (typeof pattern !== "function" && callback != null) {
 				pattern = pattern instanceof URLPattern
 					? pattern
 					: new URLPattern({ pathname: pattern });
@@ -37,7 +35,7 @@ export default function (input: string, output: string): App {
 		},
 		use(
 			pattern: URLPattern | string,
-			callback?: PluginCallback | string,
+			callback?: PluginCallback,
 		): App {
 			pattern = pattern instanceof URLPattern
 				? pattern
