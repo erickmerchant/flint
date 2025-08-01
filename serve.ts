@@ -43,16 +43,14 @@ export default function (
 				}
 			}
 
-			const file: string = new URL(
+			const result = await Deno.readFile(
 				Path.join(Deno.cwd(), config.output, "files", pathname),
-				import.meta.url,
-			).href;
-			const result = await fetch(file);
+			);
 			const type = contentType(Path.extname(pathname)) ?? "text/plain";
 
 			headers["Content-Type"] = type;
 
-			return new Response(result.body, {
+			return new Response(result, {
 				status: 200,
 				headers,
 			});
