@@ -1,6 +1,6 @@
 {
 	"name": "@flint/framework",
-	"version": "0.5.1",
+	"version": "0.6.0",
 	"license": "MIT",
 	"exports": {
 		".": "./mod.ts",
@@ -18,7 +18,6 @@
 		"@std/crypto": "jsr:@std/crypto@^1.0.4",
 		"@std/encoding": "jsr:@std/encoding@^1.0.10",
 		"@std/fs": "jsr:@std/fs@^1.0.17",
-		"@std/http": "jsr:@std/http@^1.0.20",
 		"@std/media-types": "jsr:@std/media-types@^1.1.0",
 		"@std/path": "jsr:@std/path@^1.0.9",
 		"lightningcss": "npm:lightningcss@^1.29.3"

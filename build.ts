@@ -5,6 +5,7 @@ import { crypto } from "@std/crypto";
 
 export default async function (config: Config) {
 	const urls: Record<string, string> = {};
+	const etags: Record<string, string> = {};
 
 	config.resolve = (key: string) => urls[key];
 
@@ -110,6 +111,11 @@ export default async function (config: Config) {
 					pathname += "index.html";
 				}
 
+				const buffer = await crypto.subtle.digest("SHA-256", result);
+				const etag = encodeBase64Url(buffer).substring(0, 16);
+
+				etags[pathname] = `W/"${etag}"`;
+
 				pathname = Path.join(distDir, "files", pathname);
 
 				await Fs.ensureDir(Path.dirname(pathname));
@@ -155,9 +161,11 @@ export default async function (config: Config) {
 		}";
 
 		const urls : Record<string, string> = ${JSON.stringify(urls)};
+		const etags : Record<string, string> = ${JSON.stringify(etags)};
 		const config = app.config();
 
 		config.resolve = (key: string) => urls[key];
+		config.etags = etags;
 
 		const fetch = serve(config)
 

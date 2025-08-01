@@ -1,6 +1,5 @@
 import * as Path from "@std/path";
 import { contentType } from "@std/media-types";
-import { serveDir } from "@std/http/file-server";
 
 const fingerprintURLPattern = new URLPattern({
 	pathname: "*-([A-Za-z0-9_-]{16}).*",
@@ -13,51 +12,80 @@ export default function (
 
 	return async function (req: Request): Promise<Response> {
 		const url = new URL(req.url);
-		const headers: Array<string> = [];
-		const hasFingerprint = fingerprintURLPattern.test(url);
 
-		if (hasFingerprint) {
-			headers.push("Cache-Control: public, max-age=31536000, immutable");
+		try {
+			const headers: Record<string, string> = {};
+			const hasFingerprint = fingerprintURLPattern.test(url);
+
+			if (hasFingerprint) {
+				headers["Cache-Control"] = "public, max-age=31536000, immutable";
+			}
+
+			let pathname = url.pathname;
+
+			if (pathname.endsWith("/")) {
+				pathname += "index.html";
+			}
+
+			if (
+				config.etags != null &&
+				config.etags[pathname]
+			) {
+				const ifNoneMatch = req.headers.get("If-None-Match");
+
+				if (
+					ifNoneMatch &&
+					ifNoneMatch == config.etags[pathname]
+				) {
+					return new Response(null, { status: 304 });
+				} else {
+					headers.ETag = config.etags[pathname];
+				}
+			}
+
+			const file: string = new URL(
+				Path.join(Deno.cwd(), config.output, "files", pathname),
+				import.meta.url,
+			).href;
+			const result = await fetch(file);
+			const type = contentType(Path.extname(pathname)) ?? "text/plain";
+
+			headers["Content-Type"] = type;
+
+			return new Response(result.body, {
+				status: 200,
+				headers,
+			});
+		} catch (_) {
+			//
 		}
 
 		try {
-			const result = req.method === "GET"
-				? await serveDir(req, {
-					fsRoot: Path.join(distDir, "files"),
-					headers,
-					quiet: true,
-				})
-				: null;
+			for (const route of config.routes) {
+				const match = route.pattern.exec(url);
 
-			if (result && result.status !== 404) return result;
+				if (match) {
+					const result = await route.callback({
+						request: req,
+						params: match.pathname.groups ?? {},
+						pathname: url.pathname,
+						input: config.input,
+						output: config.output,
+						resolve: config.resolve,
+					});
 
-			if (!hasFingerprint) {
-				for (const route of config.routes) {
-					const match = route.pattern.exec(url);
+					if (result instanceof Response) return result;
 
-					if (match) {
-						const result = await route.callback({
-							request: req,
-							params: match.pathname.groups ?? {},
-							pathname: url.pathname,
-							input: config.input,
-							output: config.output,
-							resolve: config.resolve,
-						});
+					const type = url.pathname.endsWith("/")
+						? "text/html"
+						: (contentType(Path.extname(url.pathname)) ?? "text/plain");
 
-						if (result instanceof Response) return result;
-
-						const type = url.pathname.endsWith("/")
-							? "text/html"
-							: (contentType(Path.extname(url.pathname)) ?? "text/plain");
-
-						return new Response(result, {
-							status: 200,
-							headers: {
-								"Content-Type": type,
-							},
-						});
-					}
+					return new Response(result, {
+						status: 200,
+						headers: {
+							"Content-Type": type,
+						},
+					});
 				}
 			}
 		} catch (e) {

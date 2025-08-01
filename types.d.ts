@@ -6,6 +6,7 @@ type Config = {
 	notFound?: RouteCallback;
 	cache: Array<CacheItem>;
 	resolve: (url: string) => string;
+	etags?: Record<string, string>;
 };
 
 type App = {
