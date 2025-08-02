@@ -167,7 +167,7 @@ export default async function (config: Config) {
 		config.resolve = (key: string) => urls[key];
 		config.etags = etags;
 
-		const fetch = serve(config)
+		const fetch = serve(config);
 
 		export default {
 			fetch(req: Request) {
