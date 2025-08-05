@@ -1,6 +1,6 @@
 {
 	"name": "@flint/framework",
-	"version": "0.6.1",
+	"version": "0.7.0",
 	"license": "MIT",
 	"exports": {
 		".": "./mod.ts",
@@ -15,6 +15,7 @@
 	},
 	"imports": {
 		"@std/async": "jsr:@std/async@^1.0.14",
+		"@std/cli": "jsr:@std/cli@^1.0.21",
 		"@std/crypto": "jsr:@std/crypto@^1.0.4",
 		"@std/encoding": "jsr:@std/encoding@^1.0.10",
 		"@std/fs": "jsr:@std/fs@^1.0.17",

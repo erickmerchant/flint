@@ -1,6 +1,7 @@
 import * as Path from "@std/path";
 import { contentType } from "@std/media-types";
 import watch from "./watch.ts";
+import { parseArgs } from "@std/cli/parse-args";
 
 const watchScript = `<script type="module">
 	let esrc = new EventSource("/_watch");
@@ -25,6 +26,10 @@ const watchScript = `<script type="module">
 `;
 
 export default function (config: Config) {
+	const flags = parseArgs(Deno.args, {
+		string: ["port"],
+	});
+
 	const fetch = async (req: Request): Promise<Response> => {
 		const url = new URL(req.url);
 
@@ -130,7 +135,7 @@ export default function (config: Config) {
 
 	Deno.serve(
 		{
-			port: Deno.args[1] ? +Deno.args[1] : 3000,
+			port: flags.port ? +flags.port : 3000,
 		},
 		async (req) => {
 			const url = new URL(req.url);
