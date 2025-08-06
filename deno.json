@@ -1,32 +1,29 @@
 {
-	"name": "@flint/framework",
-	"version": "0.7.0",
-	"license": "MIT",
-	"exports": {
-		".": "./mod.ts",
-		"./dev": "./dev.ts",
-		"./serve": "./serve.ts",
-		"./build": "./build.ts",
-		"./plugins/css": "./plugins/css.ts",
-		"./plugins/js": "./plugins/js.ts",
-		"./handlers/json": "./handlers/json.ts",
-		"./handlers/method": "./handlers/method.ts",
-		"./handlers/redirect": "./handlers/redirect.ts"
-	},
-	"imports": {
-		"@std/async": "jsr:@std/async@^1.0.14",
-		"@std/cli": "jsr:@std/cli@^1.0.21",
-		"@std/crypto": "jsr:@std/crypto@^1.0.4",
-		"@std/encoding": "jsr:@std/encoding@^1.0.10",
-		"@std/fs": "jsr:@std/fs@^1.0.17",
-		"@std/media-types": "jsr:@std/media-types@^1.1.0",
-		"@std/path": "jsr:@std/path@^1.0.9",
-		"lightningcss": "npm:lightningcss@^1.29.3"
-	},
-	"compilerOptions": {
-		"types": ["./types.d.ts"]
-	},
-	"fmt": {
-		"useTabs": true
-	}
+  "name": "@flint/framework",
+  "version": "0.7.0",
+  "license": "MIT",
+  "exports": {
+    ".": "./mod.ts",
+    "./dev": "./dev.ts",
+    "./serve": "./serve.ts",
+    "./build": "./build.ts",
+    "./plugins/css": "./plugins/css.ts",
+    "./plugins/js": "./plugins/js.ts",
+    "./handlers/json": "./handlers/json.ts",
+    "./handlers/method": "./handlers/method.ts",
+    "./handlers/redirect": "./handlers/redirect.ts"
+  },
+  "imports": {
+    "@std/async": "jsr:@std/async@^1.0.14",
+    "@std/cli": "jsr:@std/cli@^1.0.21",
+    "@std/crypto": "jsr:@std/crypto@^1.0.4",
+    "@std/encoding": "jsr:@std/encoding@^1.0.10",
+    "@std/fs": "jsr:@std/fs@^1.0.17",
+    "@std/media-types": "jsr:@std/media-types@^1.1.0",
+    "@std/path": "jsr:@std/path@^1.0.9",
+    "lightningcss": "npm:lightningcss@^1.29.3"
+  },
+  "compilerOptions": {
+    "types": ["./types.d.ts"]
+  }
 }

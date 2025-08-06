@@ -1,53 +1,53 @@
 type Init = (callback: RouteCallback) => MethodRouteCallback;
 
 type InitGroup = {
-	get: Init;
-	post: Init;
-	patch: Init;
-	put: Init;
-	delete: Init;
+  get: Init;
+  post: Init;
+  patch: Init;
+  put: Init;
+  delete: Init;
 };
 
 type MethodRouteCallback = InitGroup & RouteCallback;
 
 function init(methodName: string): Init {
-	return (callback: RouteCallback): MethodRouteCallback => {
-		const callbacks: Record<string, RouteCallback> = { [methodName]: callback };
+  return (callback: RouteCallback): MethodRouteCallback => {
+    const callbacks: Record<string, RouteCallback> = { [methodName]: callback };
 
-		const guard: MethodRouteCallback = function (
-			context: RouteContext,
-		):
-			| RouteResponse
-			| Promise<RouteResponse> {
-			if (callbacks[context.request.method.toLowerCase()] != null) {
-				return callbacks[context.request.method.toLowerCase()](context);
-			}
+    const guard: MethodRouteCallback = function (
+      context: RouteContext,
+    ):
+      | RouteResponse
+      | Promise<RouteResponse> {
+      if (callbacks[context.request.method.toLowerCase()] != null) {
+        return callbacks[context.request.method.toLowerCase()](context);
+      }
 
-			return new Response(null, { status: 405 });
-		};
+      return new Response(null, { status: 405 });
+    };
 
-		function init(methodName: string): Init {
-			return (callback: RouteCallback): MethodRouteCallback => {
-				callbacks[methodName] = callback;
+    function init(methodName: string): Init {
+      return (callback: RouteCallback): MethodRouteCallback => {
+        callbacks[methodName] = callback;
 
-				return guard;
-			};
-		}
+        return guard;
+      };
+    }
 
-		guard.get = init("get");
-		guard.post = init("post");
-		guard.patch = init("patch");
-		guard.put = init("put");
-		guard.delete = init("delete");
+    guard.get = init("get");
+    guard.post = init("post");
+    guard.patch = init("patch");
+    guard.put = init("put");
+    guard.delete = init("delete");
 
-		return guard;
-	};
+    return guard;
+  };
 }
 
 export default {
-	get: init("get"),
-	post: init("post"),
-	patch: init("patch"),
-	put: init("put"),
-	delete: init("delete"),
+  get: init("get"),
+  post: init("post"),
+  patch: init("patch"),
+  put: init("put"),
+  delete: init("delete"),
 } as InitGroup;
