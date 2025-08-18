@@ -1,8 +1,8 @@
 import dev from "./dev.ts";
 import build from "./build.ts";
 
-export default function (input: string, output: string): App {
-  const config: Config = {
+export default function (input: string, output: string): FlintApp {
+  const config: FlintConfig = {
     input: input ?? "public",
     output: output ?? "dist",
     cache: [],
@@ -11,16 +11,16 @@ export default function (input: string, output: string): App {
     resolve: (key: string) => key,
   };
 
-  const app: App = {
-    cache(...items: Array<CacheItem>): App {
+  const app: FlintApp = {
+    cache(...items: Array<FlintCacheItem>): FlintApp {
       config.cache.push(...items);
 
       return app;
     },
     route(
-      pattern: URLPattern | string | RouteCallback,
-      callback?: RouteCallback,
-    ): App {
+      pattern: URLPattern | string | FlintRouteCallback,
+      callback?: FlintRouteCallback,
+    ): FlintApp {
       if (typeof pattern === "function" && callback == null) {
         config.notFound = pattern;
       } else if (typeof pattern !== "function" && callback != null) {
@@ -35,8 +35,8 @@ export default function (input: string, output: string): App {
     },
     use(
       pattern: URLPattern | string,
-      callback?: PluginCallback,
-    ): App {
+      callback?: FlintPluginCallback,
+    ): FlintApp {
       pattern = pattern instanceof URLPattern
         ? pattern
         : new URLPattern({ pathname: pattern });
@@ -54,7 +54,7 @@ export default function (input: string, output: string): App {
         build(config);
       }
     },
-    config(): Config {
+    config(): FlintConfig {
       return config;
     },
   };

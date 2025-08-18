@@ -3,7 +3,7 @@ import * as Fs from "@std/fs";
 import { encodeBase64Url } from "@std/encoding/base64url";
 import { crypto } from "@std/crypto";
 
-export default async function (config: Config) {
+export default async function (config: FlintConfig) {
   const urls: Record<string, string> = {};
   const etags: Record<string, string> = {};
 
@@ -27,12 +27,13 @@ export default async function (config: Config) {
       const match = plugin.pattern.exec(`file://${pathname}`);
 
       if (match) {
-        const callback: PluginCallback = typeof plugin.callback === "function"
-          ? plugin.callback
-          : () =>
-            Deno.readFile(
-              Path.join(Deno.cwd(), config.input, pathname),
-            );
+        const callback: FlintPluginCallback =
+          typeof plugin.callback === "function"
+            ? plugin.callback
+            : () =>
+              Deno.readFile(
+                Path.join(Deno.cwd(), config.input, pathname),
+              );
         let result = await callback({
           params: match?.pathname?.groups ?? {},
           pathname,

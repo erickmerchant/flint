@@ -1,4 +1,4 @@
-type Init = (callback: RouteCallback) => MethodRouteCallback;
+type Init = (callback: FlintRouteCallback) => MethodRouteCallback;
 
 type InitGroup = {
   get: Init;
@@ -8,17 +8,19 @@ type InitGroup = {
   delete: Init;
 };
 
-type MethodRouteCallback = InitGroup & RouteCallback;
+type MethodRouteCallback = InitGroup & FlintRouteCallback;
 
 function init(methodName: string): Init {
-  return (callback: RouteCallback): MethodRouteCallback => {
-    const callbacks: Record<string, RouteCallback> = { [methodName]: callback };
+  return (callback: FlintRouteCallback): MethodRouteCallback => {
+    const callbacks: Record<string, FlintRouteCallback> = {
+      [methodName]: callback,
+    };
 
     const guard: MethodRouteCallback = function (
-      context: RouteContext,
+      context: FlintRouteContext,
     ):
-      | RouteResponse
-      | Promise<RouteResponse> {
+      | FlintRouteResponse
+      | Promise<FlintRouteResponse> {
       if (callbacks[context.request.method.toLowerCase()] != null) {
         return callbacks[context.request.method.toLowerCase()](context);
       }
@@ -27,7 +29,7 @@ function init(methodName: string): Init {
     };
 
     function init(methodName: string): Init {
-      return (callback: RouteCallback): MethodRouteCallback => {
+      return (callback: FlintRouteCallback): MethodRouteCallback => {
         callbacks[methodName] = callback;
 
         return guard;

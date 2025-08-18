@@ -1,79 +1,79 @@
-type Config = {
+type FlintConfig = {
   input: string;
   output: string;
-  routes: Array<Route>;
-  plugins: Array<Plugin>;
-  notFound?: RouteCallback;
-  cache: Array<CacheItem>;
+  routes: Array<FlintRoute>;
+  plugins: Array<FlintPlugin>;
+  notFound?: FlintRouteCallback;
+  cache: Array<FlintCacheItem>;
   resolve: (url: string) => string;
   etags?: Record<string, string>;
 };
 
-type App = {
-  cache: (...items: Array<CacheItem>) => App;
+type FlintApp = {
+  cache: (...items: Array<FlintCacheItem>) => FlintApp;
   route: (
-    pattern: URLPattern | string | RouteCallback,
-    callback?: RouteCallback,
-  ) => App;
+    pattern: URLPattern | string | FlintRouteCallback,
+    callback?: FlintRouteCallback,
+  ) => FlintApp;
   use: (
     pattern: URLPattern | string,
-    callback?: PluginCallback,
-  ) => App;
+    callback?: FlintPluginCallback,
+  ) => FlintApp;
   run: () => void;
-  config: () => Config;
+  config: () => FlintConfig;
 };
 
-type Params = Record<string, string | undefined>;
+type FlintParams = Record<string, string | undefined>;
 
-type RouteResponse =
+type FlintRouteResponse =
   | Uint8Array<ArrayBufferLike>
   | string
   | Response;
 
-type RouteContext = {
+type FlintRouteContext = {
   request: Request;
-  params: Params;
+  params: FlintParams;
   pathname: string;
   input: string;
   output: string;
   resolve: (url: string) => string;
 };
 
-type RouteCallback = (
-  context: RouteContext,
+type FlintRouteCallback = (
+  context: FlintRouteContext,
 ) =>
-  | RouteResponse
-  | Promise<RouteResponse>;
+  | FlintRouteResponse
+  | Promise<FlintRouteResponse>;
 
-type Route = {
+type FlintRoute = {
   pattern: URLPattern;
-  callback: RouteCallback;
+  callback: FlintRouteCallback;
 };
 
-type PluginResponse =
+type FlintPluginResponse =
   | Uint8Array<ArrayBufferLike>
   | string;
 
-type PluginContext = {
-  params: Params;
+type FlintPluginContext = {
+  params: FlintParams;
   pathname: string;
   input: string;
   output: string;
   resolve: (url: string) => string;
 };
 
-type PluginCallback = (
-  context: PluginContext,
+type FlintPluginCallback = (
+  context: FlintPluginContext,
 ) =>
-  | PluginResponse
-  | Promise<PluginResponse>;
+  | FlintPluginResponse
+  | Promise<FlintPluginResponse>;
 
-type Plugin = {
+type FlintPlugin = {
   pattern: URLPattern;
-  callback?: PluginCallback;
+  callback?: FlintPluginCallback;
 };
 
-type CacheItem =
+type FlintCacheItem =
   | string
   | Array<string>
   | (() => string | Array<string>)

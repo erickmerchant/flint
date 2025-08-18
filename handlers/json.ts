@@ -3,11 +3,11 @@ interface ValueMap extends Record<string, Value> {}
 interface ValueArray extends Array<Value> {}
 
 export default function (
-  callback: (context: RouteContext) => Value | Promise<Value>,
-): RouteCallback {
+  callback: (context: FlintRouteContext) => Value | Promise<Value>,
+): FlintRouteCallback {
   return async (
-    context: RouteContext,
-  ): Promise<RouteResponse> => {
+    context: FlintRouteContext,
+  ): Promise<FlintRouteResponse> => {
     let result = await callback(context);
 
     if (result instanceof Response) {

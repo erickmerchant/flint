@@ -1,8 +1,8 @@
 import * as Path from "@std/path";
 
 export default async function (
-  { pathname, input }: PluginContext,
-): Promise<PluginResponse> {
+  { pathname, input }: FlintPluginContext,
+): Promise<FlintPluginResponse> {
   const filename = Path.join(Deno.cwd(), input, pathname);
   const cmd = new Deno.Command(Deno.execPath(), {
     args: [

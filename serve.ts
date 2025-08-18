@@ -6,7 +6,7 @@ const fingerprintURLPattern = new URLPattern({
 });
 
 export default function (
-  config: Config,
+  config: FlintConfig,
 ): (req: Request) => Promise<Response> {
   const distDir = Path.join(Deno.cwd(), config.output);
 

@@ -2,18 +2,18 @@ type Location =
   | string
   | URL
   | ((
-    context: RouteContext,
+    context: FlintRouteContext,
   ) => string | URL | Promise<string | URL>);
 
-type Init = (location: Location) => RouteCallback;
+type Init = (location: Location) => FlintRouteCallback;
 
 function init(status: number): Init {
   return (
     location: Location,
-  ): RouteCallback => {
+  ): FlintRouteCallback => {
     return async (
-      context: RouteContext,
-    ): Promise<RouteResponse> =>
+      context: FlintRouteContext,
+    ): Promise<FlintRouteResponse> =>
       new Response(null, {
         status: status,
         headers: {

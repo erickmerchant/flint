@@ -25,7 +25,7 @@ const watchScript = `<script type="module">
 </script>
 `;
 
-export default function (config: Config) {
+export default function (config: FlintConfig) {
   const flags = parseArgs(Deno.args, {
     string: ["port"],
   });
@@ -67,12 +67,13 @@ export default function (config: Config) {
         const match = plugin.pattern.exec(url);
 
         if (match) {
-          const callback: PluginCallback = typeof plugin.callback === "function"
-            ? plugin.callback
-            : () =>
-              Deno.readFile(
-                Path.join(Deno.cwd(), config.input, url.pathname),
-              );
+          const callback: FlintPluginCallback =
+            typeof plugin.callback === "function"
+              ? plugin.callback
+              : () =>
+                Deno.readFile(
+                  Path.join(Deno.cwd(), config.input, url.pathname),
+                );
           const result = await callback({
             params: match?.pathname?.groups ?? {},
             pathname: url.pathname,
