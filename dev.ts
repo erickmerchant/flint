@@ -62,41 +62,6 @@ export default function (config: FlintConfig) {
           });
         }
       }
-
-      for (const plugin of config.plugins) {
-        const match = plugin.pattern.exec(url);
-
-        if (match) {
-          const callback: FlintPluginCallback =
-            typeof plugin.callback === "function"
-              ? plugin.callback
-              : () =>
-                Deno.readFile(
-                  Path.join(Deno.cwd(), config.input, url.pathname),
-                );
-          const result = await callback({
-            params: match?.pathname?.groups ?? {},
-            pathname: url.pathname,
-            input: config.input,
-            output: config.output,
-            resolve: config.resolve,
-          });
-
-          if (result instanceof Response) return result;
-
-          const type = url.pathname.endsWith("/")
-            ? "text/html"
-            : (contentType(Path.extname(url.pathname)) ?? "text/plain");
-
-          return new Response(result, {
-            status: 200,
-            headers: {
-              "Cache-Control": "no-store",
-              "Content-Type": type,
-            },
-          });
-        }
-      }
     } catch (e) {
       console.error(e);
     }
@@ -136,7 +101,7 @@ export default function (config: FlintConfig) {
 
   Deno.serve(
     {
-      port: flags.port ? +flags.port : 3000,
+      port: flags.port ? +flags.port : 4000,
     },
     async (req) => {
       const url = new URL(req.url);

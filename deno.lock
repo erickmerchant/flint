@@ -3,16 +3,16 @@
   "specifiers": {
     "jsr:@std/async@^1.0.14": "1.0.14",
     "jsr:@std/cli@^1.0.21": "1.0.21",
-    "jsr:@std/crypto@^1.0.4": "1.0.5",
+    "jsr:@std/crypto@^1.0.5": "1.0.5",
     "jsr:@std/encoding@^1.0.10": "1.0.10",
-    "jsr:@std/fs@^1.0.17": "1.0.19",
+    "jsr:@std/fs@^1.0.19": "1.0.19",
     "jsr:@std/internal@^1.0.10": "1.0.10",
     "jsr:@std/internal@^1.0.9": "1.0.10",
     "jsr:@std/media-types@^1.1.0": "1.1.0",
     "jsr:@std/path@^1.1.1": "1.1.2",
     "jsr:@std/path@^1.1.2": "1.1.2",
     "npm:@types/node@*": "22.15.15",
-    "npm:lightningcss@^1.29.3": "1.30.1"
+    "npm:lightningcss@^1.30.1": "1.30.1"
   },
   "jsr": {
     "@std/async@1.0.14": {
@@ -133,12 +133,12 @@
     "dependencies": [
       "jsr:@std/async@^1.0.14",
       "jsr:@std/cli@^1.0.21",
-      "jsr:@std/crypto@^1.0.4",
+      "jsr:@std/crypto@^1.0.5",
       "jsr:@std/encoding@^1.0.10",
-      "jsr:@std/fs@^1.0.17",
+      "jsr:@std/fs@^1.0.19",
       "jsr:@std/media-types@^1.1.0",
       "jsr:@std/path@^1.1.2",
-      "npm:lightningcss@^1.29.3"
+      "npm:lightningcss@^1.30.1"
     ]
   }
 }

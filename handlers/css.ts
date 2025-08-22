@@ -2,9 +2,10 @@ import * as Path from "@std/path";
 import * as LightningCSS from "lightningcss";
 
 export default function (
-  { input, pathname, resolve }: FlintPluginContext,
-): FlintPluginResponse {
+  { input, pathname, resolve }: FlintRouteContext,
+): FlintRouteResponse {
   const filename = Path.join(Deno.cwd(), input, pathname);
+
   const { code } = LightningCSS.bundle({
     filename,
     minify: true,

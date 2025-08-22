@@ -2,22 +2,21 @@ type FlintConfig = {
   input: string;
   output: string;
   routes: Array<FlintRoute>;
-  plugins: Array<FlintPlugin>;
   notFound?: FlintRouteCallback;
-  cache: Array<FlintCacheItem>;
   resolve: (url: string) => string;
   etags?: Record<string, string>;
 };
 
 type FlintApp = {
-  cache: (...items: Array<FlintCacheItem>) => FlintApp;
   route: (
-    pattern: URLPattern | string | FlintRouteCallback,
+    pathanme: string | FlintRouteCallback,
     callback?: FlintRouteCallback,
+    cache?: boolean | FlintCacheItem,
   ) => FlintApp;
-  use: (
-    pattern: URLPattern | string,
-    callback?: FlintPluginCallback,
+  file: (
+    pathanme: string,
+    callback?: FlintRouteCallback,
+    cache?: boolean | FlintCacheItem,
   ) => FlintApp;
   run: () => void;
   config: () => FlintConfig;
@@ -47,33 +46,13 @@ type FlintRouteCallback = (
 
 type FlintRoute = {
   pattern: URLPattern;
+  fingerprint: boolean;
   callback: FlintRouteCallback;
-};
-
-type FlintPluginResponse =
-  | Uint8Array<ArrayBufferLike>
-  | string;
-
-type FlintPluginContext = {
-  params: FlintParams;
-  pathname: string;
-  input: string;
-  output: string;
-  resolve: (url: string) => string;
-};
-
-type FlintPluginCallback = (
-  context: FlintPluginContext,
-) =>
-  | FlintPluginResponse
-  | Promise<FlintPluginResponse>;
-
-type FlintPlugin = {
-  pattern: URLPattern;
-  callback?: FlintPluginCallback;
+  cache?: FlintCacheItem;
 };
 
 type FlintCacheItem =
+  | false
   | string
   | Array<string>
   | (() => string | Array<string>)

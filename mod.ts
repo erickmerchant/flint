@@ -1,47 +1,66 @@
+import "./types.d.ts";
+import * as Path from "@std/path";
 import dev from "./dev.ts";
 import build from "./build.ts";
+
+async function filePlugin(
+  { input, pathname }: FlintRouteContext,
+): Promise<FlintRouteResponse> {
+  const filename = Path.join(Deno.cwd(), input, pathname);
+
+  return await Deno.readFile(filename);
+}
 
 export default function (input: string, output: string): FlintApp {
   const config: FlintConfig = {
     input: input ?? "public",
     output: output ?? "dist",
-    cache: [],
     routes: [],
-    plugins: [],
     resolve: (key: string) => key,
   };
 
   const app: FlintApp = {
-    cache(...items: Array<FlintCacheItem>): FlintApp {
-      config.cache.push(...items);
-
-      return app;
-    },
     route(
-      pattern: URLPattern | string | FlintRouteCallback,
+      pathname: string | FlintRouteCallback,
       callback?: FlintRouteCallback,
+      cache?: boolean | FlintCacheItem,
     ): FlintApp {
-      if (typeof pattern === "function" && callback == null) {
-        config.notFound = pattern;
-      } else if (typeof pattern !== "function" && callback != null) {
-        pattern = pattern instanceof URLPattern
-          ? pattern
-          : new URLPattern({ pathname: pattern });
+      if (typeof pathname === "function" && callback == null) {
+        config.notFound = pathname;
+      } else if (typeof pathname !== "function" && callback != null) {
+        const pattern = new URLPattern({ pathname });
 
-        config.routes.push({ pattern, callback });
+        if (cache == null) cache = !/[\:\*\(\{]/.test(pathname);
+
+        if (cache) {
+          if (cache === true) {
+            cache = pathname;
+          }
+        }
+
+        config.routes.push({ pattern, callback, fingerprint: false, cache });
       }
 
       return app;
     },
-    use(
-      pattern: URLPattern | string,
-      callback?: FlintPluginCallback,
+    file(
+      pathname: string,
+      callback?: FlintRouteCallback,
+      cache?: boolean | FlintCacheItem,
     ): FlintApp {
-      pattern = pattern instanceof URLPattern
-        ? pattern
-        : new URLPattern({ pathname: pattern });
+      if (callback == null) callback = filePlugin;
 
-      config.plugins.push({ pattern, callback });
+      const pattern = new URLPattern({ pathname });
+
+      if (cache == null) cache = !/[\:]/.test(pathname);
+
+      if (cache) {
+        if (cache === true) {
+          cache = pathname;
+        }
+      }
+
+      config.routes.push({ pattern, callback, fingerprint: true, cache });
 
       return app;
     },
