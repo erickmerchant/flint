@@ -2,6 +2,7 @@ import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 import { encodeBase64Url } from "@std/encoding/base64url";
 import { crypto } from "@std/crypto";
+import type { FlintConfig } from "./types.ts";
 
 export default async function (config: FlintConfig) {
   const urls: Record<string, string> = {};

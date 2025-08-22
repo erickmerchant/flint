@@ -1,3 +1,5 @@
+import type { FlintRouteCallback, FlintRouteContext, FlintRouteResponse } from "../types.ts";
+
 type Init = (callback: FlintRouteCallback) => MethodRouteCallback;
 
 type InitGroup = {

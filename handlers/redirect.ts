@@ -1,3 +1,5 @@
+import type { FlintRouteContext, FlintRouteCallback, FlintRouteResponse } from "../types.ts";
+
 type Location =
   | string
   | URL

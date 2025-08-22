@@ -1,4 +1,4 @@
-type FlintConfig = {
+export type FlintConfig = {
   input: string;
   output: string;
   routes: Array<FlintRoute>;
@@ -7,7 +7,7 @@ type FlintConfig = {
   etags?: Record<string, string>;
 };
 
-type FlintApp = {
+export type FlintApp = {
   route: (
     pathanme: string | FlintRouteCallback,
     callback?: FlintRouteCallback,
@@ -22,14 +22,14 @@ type FlintApp = {
   config: () => FlintConfig;
 };
 
-type FlintParams = Record<string, string | undefined>;
+export type FlintParams = Record<string, string | undefined>;
 
-type FlintRouteResponse =
+export type FlintRouteResponse =
   | Uint8Array<ArrayBufferLike>
   | string
   | Response;
 
-type FlintRouteContext = {
+export type FlintRouteContext = {
   request: Request;
   params: FlintParams;
   pathname: string;
@@ -38,20 +38,20 @@ type FlintRouteContext = {
   resolve: (url: string) => string;
 };
 
-type FlintRouteCallback = (
+export type FlintRouteCallback = (
   context: FlintRouteContext,
 ) =>
   | FlintRouteResponse
   | Promise<FlintRouteResponse>;
 
-type FlintRoute = {
+export type FlintRoute = {
   pattern: URLPattern;
   fingerprint: boolean;
   callback: FlintRouteCallback;
   cache?: FlintCacheItem;
 };
 
-type FlintCacheItem =
+export type FlintCacheItem =
   | false
   | string
   | Array<string>

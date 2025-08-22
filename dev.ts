@@ -1,3 +1,5 @@
+import type { FlintConfig } from "./types.ts";
+
 import * as Path from "@std/path";
 import { contentType } from "@std/media-types";
 import watch from "./watch.ts";

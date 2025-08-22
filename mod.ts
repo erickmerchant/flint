@@ -1,7 +1,15 @@
-import "./types.ts";
 import * as Path from "@std/path";
 import dev from "./dev.ts";
 import build from "./build.ts";
+import type {
+  FlintApp,
+  FlintCacheItem,
+  FlintConfig,
+  FlintRouteCallback,
+  FlintRouteContext,
+  FlintRouteResponse,
+} from "./types.ts";
+
 
 async function filePlugin(
   { input, pathname }: FlintRouteContext,
@@ -80,3 +88,14 @@ export default function (input: string, output: string): FlintApp {
 
   return app;
 }
+
+export type {
+  FlintApp,
+  FlintCacheItem,
+  FlintConfig,
+  FlintParams,
+  FlintRoute,
+  FlintRouteCallback,
+  FlintRouteContext,
+  FlintRouteResponse,
+} from "./types.ts";
