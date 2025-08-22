@@ -1,4 +1,8 @@
-import type { FlintRouteContext, FlintRouteCallback, FlintRouteResponse } from "../types.ts";
+import type {
+  FlintRouteCallback,
+  FlintRouteContext,
+  FlintRouteResponse,
+} from "../types.ts";
 
 type Location =
   | string

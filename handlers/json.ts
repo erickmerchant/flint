@@ -1,4 +1,8 @@
-import type { FlintRouteContext, FlintRouteCallback, FlintRouteResponse } from "../types.ts";
+import type {
+  FlintRouteCallback,
+  FlintRouteContext,
+  FlintRouteResponse,
+} from "../types.ts";
 
 type Value = string | number | boolean | null | ValueMap | ValueArray;
 interface ValueMap extends Record<string, Value> {}

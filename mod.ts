@@ -10,7 +10,6 @@ import type {
   FlintRouteResponse,
 } from "./types.ts";
 
-
 async function filePlugin(
   { input, pathname }: FlintRouteContext,
 ): Promise<FlintRouteResponse> {
