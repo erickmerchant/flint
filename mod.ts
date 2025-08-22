@@ -1,4 +1,4 @@
-import "./types.d.ts";
+import "./types.ts";
 import * as Path from "@std/path";
 import dev from "./dev.ts";
 import build from "./build.ts";
