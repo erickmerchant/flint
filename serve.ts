@@ -71,6 +71,7 @@ export default function (
             input: config.input,
             output: config.output,
             resolve: config.resolve,
+            sourcemap: false,
           });
 
           if (result instanceof Response) return result;
@@ -104,6 +105,7 @@ export default function (
             input: config.input,
             output: config.output,
             resolve: config.resolve,
+            sourcemap: false,
           });
         });
 

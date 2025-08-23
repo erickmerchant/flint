@@ -35,6 +35,7 @@ export type FlintRouteContext = {
   pathname: string;
   input: string;
   output: string;
+  sourcemap: boolean;
   resolve: (url: string) => string;
 };
 

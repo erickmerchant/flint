@@ -47,6 +47,7 @@ export default function (config: FlintConfig) {
             input: config.input,
             output: config.output,
             resolve: config.resolve,
+            sourcemap: true,
           });
 
           if (result instanceof Response) return result;
@@ -81,6 +82,7 @@ export default function (config: FlintConfig) {
             input: config.input,
             output: config.output,
             resolve: config.resolve,
+            sourcemap: true,
           });
         });
 

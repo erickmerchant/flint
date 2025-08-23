@@ -114,6 +114,7 @@ export default async function (config: FlintConfig) {
       input: config.input,
       output: config.output,
       resolve: config.resolve,
+      sourcemap: false,
     });
 
     if (!(result instanceof Response)) {

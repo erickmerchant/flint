@@ -4,7 +4,7 @@ import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 
 export default async function (
-  { pathname, input }: FlintRouteContext,
+  { pathname, input, sourcemap }: FlintRouteContext,
 ): Promise<FlintRouteResponse> {
   let filename = Path.join(Deno.cwd(), input, pathname);
 
@@ -23,8 +23,9 @@ export default async function (
       "--platform=browser",
       "--minify",
       "--quiet",
+      sourcemap ? "--sourcemap=inline" : null,
       filename,
-    ],
+    ].filter((a) => a != null),
     cwd: Deno.cwd(),
     stdin: "piped",
     stdout: "piped",
