@@ -9,12 +9,12 @@ export type FlintConfig = {
 
 export type FlintApp = {
   route: (
-    pathanme: string | FlintRouteCallback,
+    pathname: string | FlintRouteCallback,
     callback?: FlintRouteCallback,
     cache?: boolean | FlintCacheItem,
   ) => FlintApp;
   file: (
-    pathanme: string,
+    pathname: string,
     callback?: FlintRouteCallback,
     cache?: boolean | FlintCacheItem,
   ) => FlintApp;
