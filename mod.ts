@@ -1,6 +1,3 @@
-import * as Path from "@std/path";
-import dev from "./dev.ts";
-import build from "./build.ts";
 import type {
   FlintApp,
   FlintCacheItem,
@@ -9,6 +6,9 @@ import type {
   FlintRouteContext,
   FlintRouteResponse,
 } from "./types.ts";
+import * as Path from "@std/path";
+import dev from "./dev.ts";
+import build from "./build.ts";
 
 async function filePlugin(
   { input, pathname }: FlintRouteContext,
