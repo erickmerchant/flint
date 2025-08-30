@@ -61,12 +61,18 @@ export default function (
 
     try {
       for (const route of config.routes) {
-        const match = route.pattern.exec(url);
+        let match: boolean | URLPatternResult | null = false;
+
+        if (typeof route.pattern === "string") {
+          match = route.pattern === url.pathname;
+        } else {
+          match = route.pattern.exec(url);
+        }
 
         if (match) {
           const result = await route.callback({
             request: req,
-            params: match.pathname.groups ?? {},
+            params: match === true ? {} : (match.pathname.groups ?? {}),
             pathname: url.pathname,
             input: config.input,
             output: config.output,

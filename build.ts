@@ -27,30 +27,11 @@ export default async function (config: FlintConfig) {
     const items: Array<string> = [];
 
     if (route.cache) {
-      if (typeof route.cache === "function" || Array.isArray(route.cache)) {
-        const item = typeof route.cache === "function"
-          ? await route.cache()
-          : route.cache;
+      const item = typeof route.cache === "function"
+        ? await route.cache(publicDir)
+        : route.cache;
 
-        items.push(...item);
-      } else {
-        for (const [pathname, callback] of Object.entries(route.cache)) {
-          for await (
-            const { path } of Fs.expandGlob(
-              Path.join(publicDir, "**", pathname),
-            )
-          ) {
-            const subpath = path.substring(publicDir.length);
-            const match = route.pattern.exec(`file://${subpath}`);
-
-            if (match) {
-              items.push(
-                ...await callback(subpath, match.pathname.groups ?? {}),
-              );
-            }
-          }
-        }
-      }
+      items.push(...item);
     }
 
     routeItems.set(route, items);
@@ -58,13 +39,19 @@ export default async function (config: FlintConfig) {
 
   for (const [route, items] of routeItems) {
     for (let pathname of items) {
-      const match = route.pattern.exec(`file://${pathname}`);
+      let match: boolean | URLPatternResult | null = false;
+
+      if (typeof route.pattern === "string") {
+        match = route.pattern === pathname;
+      } else {
+        match = route.pattern.exec(`file://${pathname}`);
+      }
 
       if (match) {
         const request = new Request(`file://${pathname}`);
         let result = await route.callback({
           request,
-          params: match?.pathname?.groups ?? {},
+          params: match === true ? {} : (match.pathname.groups ?? {}),
           pathname,
           input: config.input,
           output: config.output,

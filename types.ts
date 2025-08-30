@@ -9,12 +9,12 @@ export type FlintConfig = {
 
 export type FlintApp = {
   route: (
-    pathname: string | FlintRouteCallback,
+    pathname: string | URLPattern | FlintRouteCallback,
     callback?: FlintRouteCallback,
     cache?: FlintCacheItem,
   ) => FlintApp;
   file: (
-    pathname: string,
+    pathname: string | URLPattern,
     callback?: FlintRouteCallback,
     cache?: FlintCacheItem,
   ) => FlintApp;
@@ -46,7 +46,7 @@ export type FlintRouteCallback = (
   | Promise<FlintRouteResponse>;
 
 export type FlintRoute = {
-  pattern: URLPattern;
+  pattern: string | URLPattern;
   fingerprint: boolean;
   callback: FlintRouteCallback;
   cache?: FlintCacheItem;
@@ -54,10 +54,4 @@ export type FlintRoute = {
 
 export type FlintCacheItem =
   | Array<string>
-  | (() => Array<string>)
-  | (() => Promise<Array<string>>)
-  | Record<
-    string,
-    | ((pathname: string, params: FlintParams) => Array<string>)
-    | ((pathname: string, params: FlintParams) => Promise<Array<string>>)
-  >;
+  | ((dir: string) => Array<string> | Promise<Array<string>>);
