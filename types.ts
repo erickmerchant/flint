@@ -11,12 +11,12 @@ export type FlintApp = {
   route: (
     pathname: string | FlintRouteCallback,
     callback?: FlintRouteCallback,
-    cache?: boolean | FlintCacheItem,
+    cache?: FlintCacheItem,
   ) => FlintApp;
   file: (
     pathname: string,
     callback?: FlintRouteCallback,
-    cache?: boolean | FlintCacheItem,
+    cache?: FlintCacheItem,
   ) => FlintApp;
   run: () => void;
   config: () => FlintConfig;
@@ -53,8 +53,11 @@ export type FlintRoute = {
 };
 
 export type FlintCacheItem =
-  | false
-  | string
   | Array<string>
-  | (() => string | Array<string>)
-  | (() => Promise<string | Array<string>>);
+  | (() => Array<string>)
+  | (() => Promise<Array<string>>)
+  | Record<
+    string,
+    | ((pathname: string, params: FlintParams) => Array<string>)
+    | ((pathname: string, params: FlintParams) => Promise<Array<string>>)
+  >;

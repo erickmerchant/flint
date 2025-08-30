@@ -27,26 +27,28 @@ export default async function (config: FlintConfig) {
     const items: Array<string> = [];
 
     if (route.cache) {
-      let item = route.cache;
+      if (typeof route.cache === "function" || Array.isArray(route.cache)) {
+        const item = typeof route.cache === "function"
+          ? await route.cache()
+          : route.cache;
 
-      item = typeof item === "function" ? await item() : item;
-      item = Array.isArray(item) ? item : [item];
-
-      for (const pathname of item) {
-        if (route.fingerprint && /[\:\*\(\{]/.test(pathname)) {
+        items.push(...item);
+      } else {
+        for (const [pathname, callback] of Object.entries(route.cache)) {
           for await (
             const { path } of Fs.expandGlob(
-              Path.join(publicDir, "**/*"),
+              Path.join(publicDir, "**", pathname),
             )
           ) {
-            const match = route.pattern.exec(`file://${pathname}`);
+            const subpath = path.substring(publicDir.length);
+            const match = route.pattern.exec(`file://${subpath}`);
 
             if (match) {
-              items.push(path.substring(publicDir.length));
+              items.push(
+                ...await callback(subpath, match.pathname.groups ?? {}),
+              );
             }
           }
-        } else {
-          items.push(pathname);
         }
       }
     }

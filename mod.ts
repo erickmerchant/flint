@@ -3,20 +3,10 @@ import type {
   FlintCacheItem,
   FlintConfig,
   FlintRouteCallback,
-  FlintRouteContext,
-  FlintRouteResponse,
 } from "./types.ts";
-import * as Path from "@std/path";
 import dev from "./dev.ts";
 import build from "./build.ts";
-
-async function filePlugin(
-  { input, pathname }: FlintRouteContext,
-): Promise<FlintRouteResponse> {
-  const filename = Path.join(Deno.cwd(), input, pathname);
-
-  return await Deno.readFile(filename);
-}
+import filePlugin from "./handlers/file.ts";
 
 export default function (input: string, output: string): FlintApp {
   const config: FlintConfig = {
@@ -30,20 +20,12 @@ export default function (input: string, output: string): FlintApp {
     route(
       pathname: string | FlintRouteCallback,
       callback?: FlintRouteCallback,
-      cache?: boolean | FlintCacheItem,
+      cache?: FlintCacheItem,
     ): FlintApp {
       if (typeof pathname === "function" && callback == null) {
         config.notFound = pathname;
       } else if (typeof pathname !== "function" && callback != null) {
         const pattern = new URLPattern({ pathname });
-
-        if (cache == null) cache = !/[\:\*\(\{]/.test(pathname);
-
-        if (cache) {
-          if (cache === true) {
-            cache = pathname;
-          }
-        }
 
         config.routes.push({ pattern, callback, fingerprint: false, cache });
       }
@@ -53,18 +35,16 @@ export default function (input: string, output: string): FlintApp {
     file(
       pathname: string,
       callback?: FlintRouteCallback,
-      cache?: boolean | FlintCacheItem,
+      cache?: FlintCacheItem,
     ): FlintApp {
       if (callback == null) callback = filePlugin;
 
       const pattern = new URLPattern({ pathname });
 
-      if (cache == null) cache = !/[\:]/.test(pathname);
-
-      if (cache) {
-        if (cache === true) {
-          cache = pathname;
-        }
+      if (cache == null) {
+        cache = {
+          [pathname]: (pathname) => [pathname],
+        };
       }
 
       config.routes.push({ pattern, callback, fingerprint: true, cache });
