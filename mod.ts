@@ -27,6 +27,10 @@ export default function (input: string, output: string): FlintApp {
       } else if (typeof pathname !== "function" && callback != null) {
         const pattern = new URLPattern({ pathname });
 
+        if (cache == null) {
+          cache = [pathname];
+        }
+
         config.routes.push({ pattern, callback, fingerprint: false, cache });
       }
 
