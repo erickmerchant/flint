@@ -14,7 +14,7 @@
   },
   "imports": {
     "@std/async": "jsr:@std/async@^1.0.14",
-    "@std/cli": "jsr:@std/cli@^1.0.21",
+    "@std/cli": "jsr:@std/cli@^1.0.22",
     "@std/crypto": "jsr:@std/crypto@^1.0.5",
     "@std/encoding": "jsr:@std/encoding@^1.0.10",
     "@std/fs": "jsr:@std/fs@^1.0.19",
