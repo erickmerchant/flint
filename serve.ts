@@ -24,10 +24,6 @@ export default function (
 
       let pathname = url.pathname;
 
-      if (pathname.endsWith("/")) {
-        pathname += "index.html";
-      }
-
       if (
         config.etags != null &&
         config.etags[pathname]
@@ -42,6 +38,10 @@ export default function (
         } else {
           headers.ETag = config.etags[pathname];
         }
+      }
+
+      if (pathname.endsWith("/")) {
+        pathname += "index.html";
       }
 
       const result = await Deno.readFile(
