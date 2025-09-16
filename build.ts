@@ -1,8 +1,6 @@
-import type { FlintConfig } from "./types.ts";
+import type { FlintConfig, FlintRoute } from "./types.ts";
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
-import { encodeBase64Url } from "@std/encoding/base64url";
-import { crypto } from "@std/crypto";
 
 export default async function (config: FlintConfig) {
   const urls: Record<string, string> = {};
@@ -17,82 +15,64 @@ export default async function (config: FlintConfig) {
 
   await Fs.ensureDir(distDir);
 
-  const routeItems = new Map();
+  const routeItems = new Map<FlintRoute, Array<string>>();
+  const routeItemsPromises: Array<Promise<boolean>> = [];
 
   for (
     const route of config.routes.toSorted((a, b) =>
       a.fingerprint === b.fingerprint ? 0 : a.fingerprint ? -1 : 1
     )
   ) {
-    const items: Array<string> = [];
-
     if (route.cache) {
-      const item = typeof route.cache === "function"
-        ? await route.cache(publicDir)
+      const cachePromise = typeof route.cache === "function"
+        ? route.cache(publicDir)
         : route.cache;
+      const routeItemResult: Array<string> = [];
 
-      items.push(...item);
+      routeItems.set(route, routeItemResult);
+
+      routeItemsPromises.push(
+        Promise.resolve(cachePromise).then((result) => {
+          routeItemResult.push(...result);
+
+          return true;
+        }),
+      );
     }
-
-    routeItems.set(route, items);
   }
 
+  await Promise.all(routeItemsPromises);
+
   for (const [route, items] of routeItems) {
-    for (let pathname of items) {
-      let match: boolean | URLPatternResult | null = false;
+    const cacheResultPromises = [];
+    for (const pathname of items) {
+      const { resolve, promise } = Promise.withResolvers();
+      const builder = new Worker(
+        new URL("./builder.ts", import.meta.url).href,
+        {
+          type: "module",
+        },
+      );
 
-      if (typeof route.pattern === "string") {
-        match = route.pattern === pathname;
-      } else {
-        match = route.pattern.exec(`file://${pathname}`);
-      }
+      builder.postMessage({
+        routeIndex: config.routes.findIndex((r) => r === route),
+        pathname,
+        urls,
+      });
 
-      if (match) {
-        const request = new Request(`file://${pathname}`);
-        let result = await route.callback({
-          request,
-          params: match === true ? {} : (match.pathname.groups ?? {}),
-          pathname,
-          input: config.input,
-          output: config.output,
-          resolve: config.resolve,
-        });
-
-        if (result instanceof Response) continue;
-
-        if (typeof result === "string") {
-          result = new TextEncoder().encode(result);
-        }
-
-        if (pathname.endsWith("/")) {
-          pathname += "index.html";
-        }
-
-        const buffer = await crypto.subtle.digest("SHA-256", result);
-        const hash = encodeBase64Url(buffer).substring(0, 16);
-
+      builder.onmessage = (e: MessageEvent<string>) => {
         if (route.fingerprint) {
-          urls[pathname] = Path.format({
-            root: "/",
-            dir: Path.dirname(pathname),
-            ext: Path.extname(pathname),
-            name: `${Path.basename(pathname, Path.extname(pathname))}-${hash}`,
-          });
-
-          pathname = urls[pathname];
+          urls[pathname] = e.data;
         } else {
-          etags[pathname] = `W/"${hash}"`;
+          etags[pathname] = e.data;
         }
 
-        pathname = Path.join(distDir, "files", pathname);
+        resolve(true);
+      };
 
-        await Fs.ensureDir(Path.dirname(pathname));
-
-        await Deno.writeFile(pathname, result);
-
-        continue;
-      }
+      cacheResultPromises.push(promise);
     }
+    await Promise.all(cacheResultPromises);
   }
 
   if (config.notFound) {
