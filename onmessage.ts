@@ -1,16 +1,12 @@
 /// <reference lib="deno.worker" />
 
-import type { FlintApp } from "@flint/framework";
+import type { FlintConfig } from "@flint/framework";
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 import { encodeBase64Url } from "@std/encoding/base64url";
 import { crypto } from "@std/crypto";
 
-self.onmessage = async (e) => {
-  const { default: app }: { default: FlintApp } = await import(
-    Path.join(Deno.cwd(), "flint.ts")
-  );
-  const config = app.config();
+export default (config: FlintConfig) => async (e: MessageEvent) => {
   let { routeIndex, pathname, urls }: {
     routeIndex: number;
     pathname: string;
@@ -20,7 +16,7 @@ self.onmessage = async (e) => {
   config.resolve = (key: string) => urls[key];
 
   const route = config.routes[routeIndex];
-  const distDir = Path.join(Deno.cwd(), config.output);
+  const distDir = Path.join(Deno.cwd(), config.dist);
   let match: boolean | URLPatternResult | null = false;
 
   if (typeof route.pattern === "string") {
@@ -35,8 +31,8 @@ self.onmessage = async (e) => {
       request,
       params: match === true ? {} : (match.pathname.groups ?? {}),
       pathname,
-      input: config.input,
-      output: config.output,
+      src: config.src,
+      dist: config.dist,
       resolve: config.resolve,
       sourcemap: false,
     });

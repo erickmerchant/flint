@@ -50,8 +50,8 @@ export default function (config: FlintConfig) {
             request: req,
             params: match === true ? {} : (match.pathname.groups ?? {}),
             pathname: url.pathname,
-            input: config.input,
-            output: config.output,
+            src: config.src,
+            dist: config.dist,
             resolve: config.resolve,
             sourcemap: true,
           });
@@ -79,14 +79,14 @@ export default function (config: FlintConfig) {
       if (config.notFound != null) {
         const notFound = config.notFound;
         const result = await Deno.readTextFile(
-          Path.join(Deno.cwd(), config.input, "404.html"),
+          Path.join(Deno.cwd(), config.src, "404.html"),
         ).catch(() => {
           return notFound({
             request: req,
             params: {},
             pathname: url.pathname,
-            input: config.input,
-            output: config.output,
+            src: config.src,
+            dist: config.dist,
             resolve: config.resolve,
             sourcemap: true,
           });
@@ -117,7 +117,7 @@ export default function (config: FlintConfig) {
       const url = new URL(req.url);
 
       if (url.pathname === "/_watch") {
-        return watch(config.output);
+        return watch(config.dist);
       }
 
       const response = await fetch(req);

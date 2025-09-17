@@ -51,10 +51,10 @@ export function glob(
   };
 }
 
-export default function (input: string, output: string): FlintApp {
+export default function (src: string, dist: string): FlintApp {
   const config: FlintConfig = {
-    input: input ?? "public",
-    output: output ?? "dist",
+    src: src ?? "src",
+    dist: dist ?? "dist",
     routes: [],
     resolve: (key: string) => key,
   };

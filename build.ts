@@ -8,12 +8,26 @@ export default async function (config: FlintConfig) {
 
   config.resolve = (key: string) => urls[key];
 
-  const distDir = Path.join(Deno.cwd(), config.output);
-  const publicDir = Path.join(Deno.cwd(), config.input);
+  const distDir = Path.join(Deno.cwd(), config.dist);
+  const publicDir = Path.join(Deno.cwd(), config.src);
 
   await Fs.emptyDir(distDir);
 
   await Fs.ensureDir(distDir);
+
+  await Deno.writeTextFile(
+    Path.join(distDir, "builder.ts"),
+    `
+    /// <reference lib="deno.worker" />
+
+		import onmessage from "@flint/framework/onmessage";
+		import app from "${
+      Path.relative(distDir, Path.join(Deno.cwd(), "flint.ts"))
+    }";
+
+		self.onmessage = onmessage(app.config())
+	`,
+  );
 
   const routeItems = new Map<FlintRoute, Array<string>>();
   const routeItemsPromises: Array<Promise<boolean>> = [];
@@ -48,7 +62,7 @@ export default async function (config: FlintConfig) {
     for (const pathname of items) {
       const { resolve, promise } = Promise.withResolvers();
       const builder = new Worker(
-        new URL("./builder.ts", import.meta.url).href,
+        new URL(Path.join(distDir, "builder.ts"), import.meta.url).href,
         {
           type: "module",
         },
@@ -80,8 +94,8 @@ export default async function (config: FlintConfig) {
       request: new Request("file://404.html"),
       params: {},
       pathname: "404.html",
-      input: config.input,
-      output: config.output,
+      src: config.src,
+      dist: config.dist,
       resolve: config.resolve,
       sourcemap: false,
     });

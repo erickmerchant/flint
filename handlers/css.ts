@@ -5,9 +5,9 @@ import * as LightningCSS from "lightningcss";
 import { encodeBase64 } from "@std/encoding/base64";
 
 export default function (
-  { input, pathname, resolve, sourcemap }: FlintRouteContext,
+  { src, pathname, resolve, sourcemap }: FlintRouteContext,
 ): FlintRouteResponse {
-  const filename = Path.join(Deno.cwd(), input, pathname);
+  const filename = Path.join(Deno.cwd(), src, pathname);
 
   const { code, map } = LightningCSS.bundle({
     filename,

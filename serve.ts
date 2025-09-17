@@ -9,7 +9,7 @@ const fingerprintURLPattern = new URLPattern({
 export default function (
   config: FlintConfig,
 ): (req: Request) => Promise<Response> {
-  const distDir = Path.join(Deno.cwd(), config.output);
+  const distDir = Path.join(Deno.cwd(), config.dist);
 
   return async function (req: Request): Promise<Response> {
     const url = new URL(req.url);
@@ -45,7 +45,7 @@ export default function (
       }
 
       const result = await Deno.readFile(
-        Path.join(Deno.cwd(), config.output, "files", pathname),
+        Path.join(Deno.cwd(), config.dist, "files", pathname),
       );
       const type = contentType(Path.extname(pathname)) ?? "text/plain";
 
@@ -74,8 +74,8 @@ export default function (
             request: req,
             params: match === true ? {} : (match.pathname.groups ?? {}),
             pathname: url.pathname,
-            input: config.input,
-            output: config.output,
+            src: config.src,
+            dist: config.dist,
             resolve: config.resolve,
             sourcemap: false,
           });
@@ -108,8 +108,8 @@ export default function (
             request: req,
             params: {},
             pathname: url.pathname,
-            input: config.input,
-            output: config.output,
+            src: config.src,
+            dist: config.dist,
             resolve: config.resolve,
             sourcemap: false,
           });

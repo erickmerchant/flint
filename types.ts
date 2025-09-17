@@ -1,6 +1,6 @@
 export type FlintConfig = {
-  input: string;
-  output: string;
+  src: string;
+  dist: string;
   routes: Array<FlintRoute>;
   notFound?: FlintRouteCallback;
   resolve: (url: string) => string;
@@ -33,8 +33,8 @@ export type FlintRouteContext = {
   request: Request;
   params: FlintParams;
   pathname: string;
-  input: string;
-  output: string;
+  src: string;
+  dist: string;
   sourcemap: boolean;
   resolve: (url: string) => string;
 };
