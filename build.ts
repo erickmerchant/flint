@@ -18,8 +18,6 @@ export default async function (config: FlintConfig) {
   await Deno.writeTextFile(
     Path.join(distDir, "builder.ts"),
     `
-    /// <reference lib="deno.worker" />
-
 		import onmessage from "@flint/framework/onmessage";
 		import app from "${
       Path.relative(distDir, Path.join(Deno.cwd(), "flint.ts"))

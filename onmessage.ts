@@ -1,5 +1,3 @@
-/// <reference lib="deno.worker" />
-
 import type { FlintConfig } from "@flint/framework";
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
