@@ -60,7 +60,7 @@ export default async function (config: FlintConfig) {
     for (const pathname of items) {
       const { resolve, promise } = Promise.withResolvers();
       const builder = new Worker(
-        new URL(Path.join(distDir, "builder.ts"), import.meta.url).href,
+        new URL(`file:///${Path.join(distDir, "builder.ts")}`).href,
         {
           type: "module",
         },
