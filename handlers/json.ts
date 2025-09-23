@@ -1,6 +1,6 @@
 import type {
-  FlintRouteCallback,
   FlintRouteContext,
+  FlintRouteHandler,
   FlintRouteResponse,
 } from "../types.ts";
 
@@ -9,12 +9,12 @@ interface ValueMap extends Record<string, Value> {}
 interface ValueArray extends Array<Value> {}
 
 export default function (
-  callback: (context: FlintRouteContext) => Value | Promise<Value>,
-): FlintRouteCallback {
+  handler: (context: FlintRouteContext) => Value | Promise<Value>,
+): FlintRouteHandler {
   return async (
     context: FlintRouteContext,
   ): Promise<FlintRouteResponse> => {
-    let result = await callback(context);
+    let result = await handler(context);
 
     if (result instanceof Response) {
       return result;

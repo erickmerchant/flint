@@ -67,7 +67,7 @@ export default async function (config: FlintConfig) {
       );
 
       builder.postMessage({
-        routeIndex: config.routes.findIndex((r) => r === route),
+        index: route.index,
         pathname,
         urls,
       });
@@ -84,6 +84,7 @@ export default async function (config: FlintConfig) {
 
       cacheResultPromises.push(promise);
     }
+
     await Promise.all(cacheResultPromises);
   }
 
@@ -137,4 +138,6 @@ export default async function (config: FlintConfig) {
 		}
 	`,
   );
+
+  return { urls, etags };
 }

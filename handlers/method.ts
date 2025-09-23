@@ -1,10 +1,10 @@
 import type {
-  FlintRouteCallback,
   FlintRouteContext,
+  FlintRouteHandler,
   FlintRouteResponse,
 } from "../types.ts";
 
-type Init = (callback: FlintRouteCallback) => MethodRouteCallback;
+type Init = (handler: FlintRouteHandler) => MethodRouteHandler;
 
 type InitGroup = {
   get: Init;
@@ -14,29 +14,29 @@ type InitGroup = {
   delete: Init;
 };
 
-type MethodRouteCallback = InitGroup & FlintRouteCallback;
+type MethodRouteHandler = InitGroup & FlintRouteHandler;
 
 function init(methodName: string): Init {
-  return (callback: FlintRouteCallback): MethodRouteCallback => {
-    const callbacks: Record<string, FlintRouteCallback> = {
-      [methodName]: callback,
+  return (handler: FlintRouteHandler): MethodRouteHandler => {
+    const handlers: Record<string, FlintRouteHandler> = {
+      [methodName]: handler,
     };
 
-    const guard: MethodRouteCallback = function (
+    const guard: MethodRouteHandler = function (
       context: FlintRouteContext,
     ):
       | FlintRouteResponse
       | Promise<FlintRouteResponse> {
-      if (callbacks[context.request.method.toLowerCase()] != null) {
-        return callbacks[context.request.method.toLowerCase()](context);
+      if (handlers[context.request.method.toLowerCase()] != null) {
+        return handlers[context.request.method.toLowerCase()](context);
       }
 
       return new Response(null, { status: 405 });
     };
 
     function init(methodName: string): Init {
-      return (callback: FlintRouteCallback): MethodRouteCallback => {
-        callbacks[methodName] = callback;
+      return (handler: FlintRouteHandler): MethodRouteHandler => {
+        handlers[methodName] = handler;
 
         return guard;
       };

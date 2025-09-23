@@ -1,9 +1,9 @@
 import type { FlintConfig } from "./types.ts";
 
-import * as Path from "@std/path";
-import { contentType } from "@std/media-types";
 import watch from "./watch.ts";
 import { parseArgs } from "@std/cli/parse-args";
+import build from "./build.ts";
+import serve from "./serve.ts";
 
 const watchScript = `<script type="module">
 	let esrc = new EventSource("/_watch");
@@ -27,87 +27,21 @@ const watchScript = `<script type="module">
 </script>
 `;
 
-export default function (config: FlintConfig) {
+export default async function (config: FlintConfig) {
   const flags = parseArgs(Deno.args, {
     string: ["port"],
   });
 
-  const fetch = async (req: Request): Promise<Response> => {
-    const url = new URL(req.url);
+  const { urls, etags } = await build({
+    ...config,
+    routes: config.routes.filter((r) => r.once),
+  });
 
-    try {
-      for (const route of config.routes) {
-        let match: boolean | URLPatternResult | null = false;
+  config.etags = etags;
 
-        if (typeof route.pattern === "string") {
-          match = route.pattern === url.pathname;
-        } else {
-          match = route.pattern.exec(url);
-        }
+  config.resolve = (key: string) => urls[key] ?? key;
 
-        if (match) {
-          const result = await route.callback({
-            request: req,
-            params: match === true ? {} : (match.pathname.groups ?? {}),
-            pathname: url.pathname,
-            src: config.src,
-            dist: config.dist,
-            resolve: config.resolve,
-            sourcemap: true,
-          });
-
-          if (result instanceof Response) return result;
-
-          const type = url.pathname.endsWith("/")
-            ? "text/html"
-            : (contentType(Path.extname(url.pathname)) ?? "text/plain");
-
-          return new Response(result, {
-            status: 200,
-            headers: {
-              "Cache-Control": "no-store",
-              "Content-Type": type,
-            },
-          });
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
-
-    try {
-      if (config.notFound != null) {
-        const notFound = config.notFound;
-        const result = await Deno.readTextFile(
-          Path.join(Deno.cwd(), config.src, "404.html"),
-        ).catch(() => {
-          return notFound({
-            request: req,
-            params: {},
-            pathname: url.pathname,
-            src: config.src,
-            dist: config.dist,
-            resolve: config.resolve,
-            sourcemap: true,
-          });
-        });
-
-        if (result instanceof Response) return result;
-
-        return new Response(result, {
-          status: 404,
-          headers: {
-            "Cache-Control": "no-store",
-            "Content-Type": "text/html",
-          },
-        });
-      }
-    } catch (e) {
-      console.error(e);
-    }
-
-    return new Response("Not Found", { status: 404 });
-  };
+  const fetch = serve(config);
 
   Deno.serve(
     {
@@ -121,8 +55,6 @@ export default function (config: FlintConfig) {
       }
 
       const response = await fetch(req);
-
-      response.headers.set("cache-control", "no-store");
 
       if (response.headers.get("content-type") !== "text/html") {
         return response;

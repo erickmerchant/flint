@@ -2,21 +2,25 @@ export type FlintConfig = {
   src: string;
   dist: string;
   routes: Array<FlintRoute>;
-  notFound?: FlintRouteCallback;
+  notFound?: FlintRouteHandler;
   resolve: (url: string) => string;
   etags?: Record<string, string>;
 };
 
+export type FlintRouteParams = {
+  handler?: FlintRouteHandler;
+  cache?: FlintCacheItem;
+  once?: boolean;
+};
+
 export type FlintApp = {
   route: (
-    pathname: string | URLPattern | FlintRouteCallback,
-    callback?: FlintRouteCallback,
-    cache?: FlintCacheItem,
+    pattern: string | URLPattern | FlintRouteHandler,
+    params?: FlintRouteParams,
   ) => FlintApp;
   file: (
-    pathname: string | URLPattern,
-    callback?: FlintRouteCallback,
-    cache?: FlintCacheItem,
+    pattern: string | URLPattern,
+    params?: FlintRouteParams,
   ) => FlintApp;
   run: () => void;
   config: () => FlintConfig;
@@ -39,16 +43,18 @@ export type FlintRouteContext = {
   resolve: (url: string) => string;
 };
 
-export type FlintRouteCallback = (
+export type FlintRouteHandler = (
   context: FlintRouteContext,
 ) =>
   | FlintRouteResponse
   | Promise<FlintRouteResponse>;
 
 export type FlintRoute = {
+  index: number;
   pattern: string | URLPattern;
   fingerprint: boolean;
-  callback: FlintRouteCallback;
+  once: boolean;
+  handler: FlintRouteHandler;
   cache?: FlintCacheItem;
 };
 

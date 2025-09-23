@@ -1,6 +1,8 @@
 import type { FlintConfig } from "./types.ts";
 import * as Path from "@std/path";
 import { contentType } from "@std/media-types";
+import { encodeBase64Url } from "@std/encoding/base64url";
+import { crypto } from "@std/crypto";
 
 const fingerprintURLPattern = new URLPattern({
   pathname: "*-([A-Za-z0-9_-]{16}).*",
@@ -70,7 +72,7 @@ export default function (
         }
 
         if (match) {
-          const result = await route.callback({
+          let result = await route.handler({
             request: req,
             params: match === true ? {} : (match.pathname.groups ?? {}),
             pathname: url.pathname,
@@ -86,10 +88,28 @@ export default function (
             ? "text/html"
             : (contentType(Path.extname(url.pathname)) ?? "text/plain");
 
+          if (typeof result === "string") {
+            result = new TextEncoder().encode(result);
+          }
+
+          const buffer = await crypto.subtle.digest("SHA-256", result);
+          const hash = encodeBase64Url(buffer).substring(0, 16);
+          const etag = `W/"${hash}"`;
+
+          const ifNoneMatch = req.headers.get("If-None-Match");
+
+          if (
+            ifNoneMatch &&
+            ifNoneMatch == etag
+          ) {
+            return new Response(null, { status: 304 });
+          }
+
           return new Response(result, {
             status: 200,
             headers: {
               "Content-Type": type,
+              "Etag": etag,
             },
           });
         }

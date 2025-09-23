@@ -1,9 +1,9 @@
 import type {
   FlintApp,
-  FlintCacheItem,
   FlintConfig,
   FlintParams,
-  FlintRouteCallback,
+  FlintRouteHandler,
+  FlintRouteParams,
 } from "./types.ts";
 import dev from "./dev.ts";
 import build from "./build.ts";
@@ -24,7 +24,7 @@ export function pattern(
 
 export function glob(
   pattern: URLPattern,
-  callback: (
+  handler: (
     path: string,
     params: FlintParams,
   ) => Array<string> | Promise<string>,
@@ -42,7 +42,7 @@ export function glob(
 
       if (match) {
         items.push(
-          ...await callback(subpath, match.pathname.groups ?? {}),
+          ...await handler(subpath, match.pathname.groups ?? {}),
         );
       }
     }
@@ -58,41 +58,63 @@ export default function (src: string, dist: string): FlintApp {
     routes: [],
     resolve: (key: string) => key,
   };
+  let index = 0;
 
   const app: FlintApp = {
     route(
-      pattern: string | URLPattern | FlintRouteCallback,
-      callback?: FlintRouteCallback,
-      cache?: FlintCacheItem,
+      pattern: string | URLPattern | FlintRouteHandler,
+      params?: FlintRouteParams,
     ): FlintApp {
-      if (typeof pattern === "function" && callback == null) {
+      if (typeof pattern === "function" && params == null) {
         config.notFound = pattern;
-      } else if (typeof pattern !== "function" && callback != null) {
-        if (cache == null && !(pattern instanceof URLPattern)) {
-          cache = [pattern];
-        }
+      } else if (typeof pattern !== "function" && params != null) {
+        let {
+          handler,
+          cache,
+          once,
+        } = params;
 
-        config.routes.push({ pattern, callback, fingerprint: false, cache });
+        if (handler) {
+          if (cache == null && !(pattern instanceof URLPattern)) {
+            cache = [pattern];
+          }
+
+          config.routes.push({
+            index: index++,
+            pattern,
+            handler,
+            fingerprint: false,
+            once: once ?? false,
+            cache,
+          });
+        }
       }
 
       return app;
     },
-    file(
-      pattern: string | URLPattern,
-      callback?: FlintRouteCallback,
-      cache?: FlintCacheItem,
-    ): FlintApp {
-      if (callback == null) callback = filePlugin;
+    file(pattern: string | URLPattern, params?: FlintRouteParams): FlintApp {
+      if (typeof pattern !== "function") {
+        const handler = params?.handler ?? filePlugin;
+        const once = params?.once ?? false;
+        let cache = params?.cache;
 
-      if (cache == null) {
-        if ((pattern instanceof URLPattern)) {
-          cache = glob(pattern, (pathname: string) => [pathname]);
-        } else {
-          cache = [pattern];
+        if (cache == null) {
+          if ((pattern instanceof URLPattern)) {
+            cache = glob(pattern, (pathname: string) => [pathname]);
+          } else {
+            cache = [pattern];
+          }
         }
-      }
 
-      config.routes.push({ pattern, callback, fingerprint: true, cache });
+        config.routes.push({
+          index: index++,
+          pattern,
+          handler,
+          fingerprint: true,
+          once: once,
+          cache,
+        });
+      }
 
       return app;
     },
@@ -119,7 +141,7 @@ export type {
   FlintConfig,
   FlintParams,
   FlintRoute,
-  FlintRouteCallback,
   FlintRouteContext,
+  FlintRouteHandler,
   FlintRouteResponse,
 } from "./types.ts";

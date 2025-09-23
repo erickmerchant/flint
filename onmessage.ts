@@ -5,17 +5,23 @@ import { encodeBase64Url } from "@std/encoding/base64url";
 import { crypto } from "@std/crypto";
 
 export default (config: FlintConfig) => async (e: MessageEvent) => {
-  let { routeIndex, pathname, urls }: {
-    routeIndex: number;
+  let { index, pathname, urls }: {
+    index: number;
     pathname: string;
     urls: Record<string, string>;
   } = e.data;
 
   config.resolve = (key: string) => urls[key];
 
-  const route = config.routes[routeIndex];
+  const route = config.routes.find((r) => r.index === index);
   const distDir = Path.join(Deno.cwd(), config.dist);
   let match: boolean | URLPatternResult | null = false;
+
+  if (!route) {
+    self.close();
+
+    return;
+  }
 
   if (typeof route.pattern === "string") {
     match = route.pattern === pathname;
@@ -25,7 +31,7 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
 
   if (match) {
     const request = new Request(`file://${pathname}`);
-    let result = await route.callback({
+    let result = await route.handler({
       request,
       params: match === true ? {} : (match.pathname.groups ?? {}),
       pathname,

@@ -1,6 +1,6 @@
 import type {
-  FlintRouteCallback,
   FlintRouteContext,
+  FlintRouteHandler,
   FlintRouteResponse,
 } from "../types.ts";
 
@@ -11,12 +11,12 @@ type Location =
     context: FlintRouteContext,
   ) => string | URL | Promise<string | URL>);
 
-type Init = (location: Location) => FlintRouteCallback;
+type Init = (location: Location) => FlintRouteHandler;
 
 function init(status: number): Init {
   return (
     location: Location,
-  ): FlintRouteCallback => {
+  ): FlintRouteHandler => {
     return async (
       context: FlintRouteContext,
     ): Promise<FlintRouteResponse> =>
