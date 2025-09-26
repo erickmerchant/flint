@@ -1,4 +1,4 @@
-import type { FlintConfig } from "@flint/framework";
+import type { FlintConfig } from "./types.ts";
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 import { encodeBase64Url } from "@std/encoding/base64url";

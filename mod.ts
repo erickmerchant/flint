@@ -5,7 +5,6 @@ import type {
   FlintRouteHandler,
   FlintRouteParams,
 } from "./types.ts";
-import dev from "./dev.ts";
 import build from "./build.ts";
 import filePlugin from "./handlers/file.ts";
 import * as Fs from "@std/fs";
@@ -119,13 +118,7 @@ export default function (src: string, dist: string): FlintApp {
       return app;
     },
     run() {
-      if (Deno.args?.[0] === "dev") {
-        dev(config);
-      }
-
-      if (Deno.args?.[0] === "build") {
-        build(config);
-      }
+      build(config);
     },
     config(): FlintConfig {
       return config;

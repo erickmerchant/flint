@@ -1,12 +1,21 @@
 import type { FlintConfig, FlintRoute } from "./types.ts";
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
+import { parseArgs } from "@std/cli/parse-args";
 
 export default async function (config: FlintConfig) {
+  const flags = parseArgs(Deno.args, {
+    boolean: ["dev"],
+  });
+
   const urls: Record<string, string> = {};
   const etags: Record<string, string> = {};
 
-  config.resolve = (key: string) => urls[key];
+  config.resolve = (key: string) => urls[key] ?? key;
+
+  if (flags.dev) {
+    config.routes = config.routes.filter((r) => r.once);
+  }
 
   const distDir = Path.join(Deno.cwd(), config.dist);
   const publicDir = Path.join(Deno.cwd(), config.src);
@@ -115,25 +124,77 @@ export default async function (config: FlintConfig) {
   }
 
   await Deno.writeTextFile(
-    Path.join(distDir, "serve.ts"),
+    Path.join(distDir, flags.dev ? "dev-serve.ts" : "serve.ts"),
     `
 		import serve from "@flint/framework/serve";
 		import app from "${
       Path.relative(distDir, Path.join(Deno.cwd(), "flint.ts"))
     }";
 
+
+    ${
+      flags.dev
+        ? `import watch from "@flint/framework/watch";
+
+      const watchScript = \`<script type="module">
+			let esrc = new EventSource("/_watch");
+			let inError = false;
+
+			esrc.addEventListener("message", () => {
+					inError = false;
+
+					window.location.reload();
+			});
+
+			esrc.addEventListener("error", () => {
+				inError = true;
+			});
+
+			esrc.addEventListener("open", () => {
+				if (inError) {
+					window.location.reload();
+				}
+			});
+    </script>
+    \`;`
+        : ""
+    }
+
 		const urls : Record<string, string> = ${JSON.stringify(urls)};
 		const etags : Record<string, string> = ${JSON.stringify(etags)};
 		const config = app.config();
 
-		config.resolve = (key: string) => urls[key];
+		config.resolve = (key: string) => urls[key] ?? key;
 		config.etags = etags;
 
 		const fetch = serve(config);
 
 		export default {
-			fetch(req: Request) {
-				return fetch(req);
+			async fetch(req: Request) {
+		${
+      flags.dev
+        ? `const url = new URL(req.url);
+
+			      if (url.pathname === "/_watch") {
+			        return watch(config.dist);
+			      }
+
+			      const response = await fetch(req);
+
+			      if (response.headers.get("content-type") !== "text/html") {
+			        return response;
+			      }
+
+			      let body = await response.text();
+
+			      body += watchScript;
+
+			      return new Response(body, {
+			        status: response.status,
+			        headers: response.headers,
+			      });`
+        : "return fetch(req);"
+    }
 			}
 		}
 	`,
