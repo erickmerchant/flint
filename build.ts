@@ -7,7 +7,6 @@ export default async function (config: FlintConfig) {
   const flags = parseArgs(Deno.args, {
     boolean: ["dev"],
   });
-
   const urls: Record<string, string> = {};
   const etags: Record<string, string> = {};
 
