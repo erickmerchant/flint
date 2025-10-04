@@ -85,6 +85,10 @@ export default function (src: string, dist: string): FlintApp {
   let index = 0;
   let fetch;
 
+  const flags = parseArgs(Deno.args, {
+    boolean: ["build", "dev"],
+  });
+
   const app: FlintApp = {
     route(
       pattern: string | URLPattern | FlintRouteHandler,
@@ -143,16 +147,15 @@ export default function (src: string, dist: string): FlintApp {
 
       await Fs.ensureDir(distDir);
 
-      const flags = parseArgs(Deno.args, {
-        boolean: ["build"],
-      });
-
       if (flags.build) build(config);
     },
     config(): FlintConfig {
       return config;
     },
-    async fetch(req: Request) {
+  };
+
+  if (flags.dev) {
+    app.fetch = async (req: Request) => {
       const url = new URL(req.url);
 
       if (url.pathname === "/_watch") {
@@ -175,8 +178,8 @@ export default function (src: string, dist: string): FlintApp {
         status: response.status,
         headers: response.headers,
       });
-    },
-  };
+    };
+  }
 
   return app;
 }

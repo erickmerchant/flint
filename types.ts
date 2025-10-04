@@ -25,7 +25,7 @@ export type FlintApp = {
   ) => FlintApp;
   run: () => void;
   config: () => FlintConfig;
-  fetch: (request: Request) => Promise<Response> | Response;
+  fetch?: (request: Request) => Promise<Response> | Response;
 };
 
 export type FlintParams = Record<string, string | undefined>;
