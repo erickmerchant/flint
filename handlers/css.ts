@@ -36,5 +36,5 @@ export default function (
       encodedMap + " */";
   }
 
-  return code;
+  return code.toString();
 }

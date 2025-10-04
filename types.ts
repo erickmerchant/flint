@@ -10,26 +10,28 @@ export type FlintConfig = {
 export type FlintRouteParams = {
   handler?: FlintRouteHandler;
   cache?: FlintCacheItem;
-  once?: boolean;
 };
 
 export type FlintApp = {
   route: (
     pattern: string | URLPattern | FlintRouteHandler,
-    params?: FlintRouteParams,
+    handler?: FlintRouteHandler,
+    cache?: FlintCacheItem,
   ) => FlintApp;
   file: (
     pattern: string | URLPattern,
-    params?: FlintRouteParams,
+    handler?: FlintRouteHandler,
+    cache?: FlintCacheItem,
   ) => FlintApp;
   run: () => void;
   config: () => FlintConfig;
+  fetch: (request: Request) => Promise<Response> | Response;
 };
 
 export type FlintParams = Record<string, string | undefined>;
 
 export type FlintRouteResponse =
-  | Uint8Array<ArrayBufferLike>
+  | Uint8Array<ArrayBuffer>
   | string
   | Response;
 
@@ -53,7 +55,6 @@ export type FlintRoute = {
   index: number;
   pattern: string | URLPattern;
   fingerprint: boolean;
-  once: boolean;
   handler: FlintRouteHandler;
   cache?: FlintCacheItem;
 };
