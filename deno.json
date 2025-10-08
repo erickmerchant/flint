@@ -1,6 +1,6 @@
 {
   "name": "@flint/framework",
-  "version": "0.15.1",
+  "version": "0.15.2",
   "license": "MIT",
   "exports": {
     ".": "./mod.ts",
@@ -15,8 +15,8 @@
     "./handlers/redirect": "./handlers/redirect.ts"
   },
   "imports": {
-    "@std/async": "jsr:@std/async@^1.0.14",
-    "@std/cli": "jsr:@std/cli@^1.0.22",
+    "@std/async": "jsr:@std/async@^1.0.15",
+    "@std/cli": "jsr:@std/cli@^1.0.23",
     "@std/crypto": "jsr:@std/crypto@^1.0.5",
     "@std/encoding": "jsr:@std/encoding@^1.0.10",
     "@std/fs": "jsr:@std/fs@^1.0.19",
