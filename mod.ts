@@ -1,5 +1,4 @@
 import type {
-  FlintApp,
   FlintCacheItem,
   FlintConfig,
   FlintParams,
@@ -12,6 +11,22 @@ import build from "./build.ts";
 import filePlugin from "./handlers/file.ts";
 import watch from "./watch.ts";
 import serve from "./serve.ts";
+
+type App = {
+  route: (
+    pattern: string | URLPattern | FlintRouteHandler,
+    handler?: FlintRouteHandler,
+    cache?: FlintCacheItem,
+  ) => App;
+  file: (
+    pattern: string | URLPattern,
+    handler?: FlintRouteHandler,
+    cache?: FlintCacheItem,
+  ) => App;
+  run: () => void;
+  config: () => FlintConfig;
+  fetch?: (request: Request) => Promise<Response> | Response;
+};
 
 const watchScript = `<script type="module">
 			let esrc = new EventSource("/_watch");
@@ -75,7 +90,7 @@ export function glob(
   };
 }
 
-export default function (src: string, dist: string): FlintApp {
+export default function (src: string, dist: string): App {
   const config: FlintConfig = {
     src: src ?? "src",
     dist: dist ?? "dist",
@@ -89,12 +104,12 @@ export default function (src: string, dist: string): FlintApp {
     boolean: ["build", "dev"],
   });
 
-  const app: FlintApp = {
+  const app: App = {
     route(
       pattern: string | URLPattern | FlintRouteHandler,
       handler?: FlintRouteHandler,
       cache?: FlintCacheItem,
-    ): FlintApp {
+    ): App {
       if (typeof pattern === "function" && handler == null) {
         config.notFound = pattern;
       } else if (typeof pattern !== "function" && handler != null) {
@@ -117,7 +132,7 @@ export default function (src: string, dist: string): FlintApp {
       pattern: string | URLPattern,
       handler?: FlintRouteHandler,
       cache?: FlintCacheItem,
-    ): FlintApp {
+    ): App {
       if (typeof pattern !== "function") {
         handler ??= filePlugin;
 
@@ -184,13 +199,4 @@ export default function (src: string, dist: string): FlintApp {
   return app;
 }
 
-export type {
-  FlintApp,
-  FlintCacheItem,
-  FlintConfig,
-  FlintParams,
-  FlintRoute,
-  FlintRouteContext,
-  FlintRouteHandler,
-  FlintRouteResponse,
-} from "./types.ts";
+export type * from "./types.ts";

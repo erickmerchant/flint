@@ -7,27 +7,6 @@ export type FlintConfig = {
   etags?: Record<string, string>;
 };
 
-export type FlintRouteParams = {
-  handler?: FlintRouteHandler;
-  cache?: FlintCacheItem;
-};
-
-export type FlintApp = {
-  route: (
-    pattern: string | URLPattern | FlintRouteHandler,
-    handler?: FlintRouteHandler,
-    cache?: FlintCacheItem,
-  ) => FlintApp;
-  file: (
-    pattern: string | URLPattern,
-    handler?: FlintRouteHandler,
-    cache?: FlintCacheItem,
-  ) => FlintApp;
-  run: () => void;
-  config: () => FlintConfig;
-  fetch?: (request: Request) => Promise<Response> | Response;
-};
-
 export type FlintParams = Record<string, string | undefined>;
 
 export type FlintRouteResponse =
