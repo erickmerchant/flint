@@ -5,7 +5,7 @@ import * as LightningCSS from "lightningcss";
 import { encodeBase64 } from "@std/encoding/base64";
 
 export default function (
-  { src, pathname, resolve, sourcemap }: FlintRouteContext,
+  { src, pathname, urls, sourcemap }: FlintRouteContext,
 ): FlintRouteResponse {
   const filename = Path.join(Deno.cwd(), src, pathname);
 
@@ -15,9 +15,11 @@ export default function (
     sourceMap: sourcemap,
     visitor: {
       Url(url) {
+        const path = Path.resolve(pathname, url.url);
+
         return {
           ...url,
-          url: resolve(Path.resolve(pathname, url.url)),
+          url: urls[path] ?? path,
         };
       },
     },

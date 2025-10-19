@@ -3,7 +3,7 @@ export type FlintConfig = {
   dist: string;
   routes: Array<FlintRoute>;
   notFound?: FlintRouteHandler;
-  resolve: (url: string) => string;
+  urls: Record<string, string>;
   etags?: Record<string, string>;
 };
 
@@ -21,12 +21,10 @@ export type FlintRouteContext = {
   src: string;
   dist: string;
   sourcemap: boolean;
-  resolve: (url: string) => string;
+  urls: Record<string, string>;
 };
 
-export type FlintRouteHandler = (
-  context: FlintRouteContext,
-) =>
+export type FlintRouteHandler = (context: FlintRouteContext) =>
   | FlintRouteResponse
   | Promise<FlintRouteResponse>;
 

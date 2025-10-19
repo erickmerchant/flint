@@ -95,7 +95,7 @@ export default function (src: string, dist: string): App {
     src: src ?? "src",
     dist: dist ?? "dist",
     routes: [],
-    resolve: (key: string) => key,
+    urls: {},
   };
   let index = 0;
   let fetch;

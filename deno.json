@@ -1,11 +1,10 @@
 {
   "name": "@flint/framework",
-  "version": "0.15.3",
+  "version": "0.16.0",
   "license": "MIT",
   "exports": {
     ".": "./mod.ts",
     "./serve": "./serve.ts",
-    "./watch": "./watch.ts",
     "./onmessage": "./onmessage.ts",
     "./handlers/file": "./handlers/file.ts",
     "./handlers/css": "./handlers/css.ts",
@@ -22,6 +21,7 @@
     "@std/fs": "jsr:@std/fs@^1.0.19",
     "@std/media-types": "jsr:@std/media-types@^1.1.0",
     "@std/path": "jsr:@std/path@^1.1.2",
+    "html-rewriter-wasm": "npm:html-rewriter-wasm@^0.4.1",
     "lightningcss": "npm:lightningcss@^1.30.2"
   },
   "compilerOptions": {

@@ -3,6 +3,7 @@ import * as Path from "@std/path";
 import { contentType } from "@std/media-types";
 import { encodeBase64Url } from "@std/encoding/base64url";
 import { crypto } from "@std/crypto";
+import rewrite from "./rewrite.ts";
 
 const fingerprintURLPattern = new URLPattern({
   pathname: "*-([A-Za-z0-9_-]{16}).*",
@@ -78,7 +79,7 @@ export default function (
             pathname: url.pathname,
             src: config.src,
             dist: config.dist,
-            resolve: config.resolve,
+            urls: config.urls,
             sourcemap: false,
           });
 
@@ -105,6 +106,10 @@ export default function (
             return new Response(null, { status: 304 });
           }
 
+          if (type === "text/html") {
+            result = await rewrite(result, config.urls);
+          }
+
           return new Response(result, {
             status: 200,
             headers: {
@@ -121,7 +126,7 @@ export default function (
     try {
       if (config.notFound != null) {
         const notFound = config.notFound;
-        const result = await Deno.readTextFile(
+        let result = await Deno.readTextFile(
           Path.join(distDir, "files/404.html"),
         ).catch(() => {
           return notFound({
@@ -130,12 +135,18 @@ export default function (
             pathname: url.pathname,
             src: config.src,
             dist: config.dist,
-            resolve: config.resolve,
+            urls: config.urls,
             sourcemap: false,
           });
         });
 
         if (result instanceof Response) return result;
+
+        if (typeof result === "string") {
+          result = new TextEncoder().encode(result);
+        }
+
+        result = await rewrite(result, config.urls);
 
         return new Response(result, {
           status: 404,

@@ -1,12 +1,13 @@
 import type { FlintConfig, FlintRoute } from "./types.ts";
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
+import rewrite from "./rewrite.ts";
 
 export default async function (config: FlintConfig) {
   const urls: Record<string, string> = {};
   const etags: Record<string, string> = {};
 
-  config.resolve = (key: string) => urls[key] ?? key;
+  config.urls = urls;
 
   const distDir = Path.join(Deno.cwd(), config.dist);
   const publicDir = Path.join(Deno.cwd(), config.src);
@@ -91,7 +92,7 @@ export default async function (config: FlintConfig) {
       pathname: "404.html",
       src: config.src,
       dist: config.dist,
-      resolve: config.resolve,
+      urls: config.urls,
       sourcemap: false,
     });
 
@@ -103,7 +104,10 @@ export default async function (config: FlintConfig) {
       if (typeof result === "string") {
         result = new TextEncoder().encode(result);
       }
-      await Deno.writeFile(
+
+      result = await rewrite(result, config.urls);
+
+      await Deno.writeTextFile(
         path,
         result,
       );
@@ -122,7 +126,7 @@ export default async function (config: FlintConfig) {
 		const etags : Record<string, string> = ${JSON.stringify(etags)};
 		const config = app.config();
 
-		config.resolve = (key: string) => urls[key] ?? key;
+		config.urls = urls;
 		config.etags = etags;
 
 		const fetch = serve(config);

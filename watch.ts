@@ -7,9 +7,7 @@ export default function (dist: string): Response {
     async start(controller) {
       const enqueue = debounce(() => {
         controller.enqueue(
-          new TextEncoder().encode(
-            `data: "change"\r\n\r\n`,
-          ),
+          new TextEncoder().encode(`data: "change"\r\n\r\n`),
         );
       }, 500);
 

@@ -13,6 +13,7 @@
     "jsr:@std/path@^1.1.1": "1.1.2",
     "jsr:@std/path@^1.1.2": "1.1.2",
     "npm:@types/node@*": "22.15.15",
+    "npm:html-rewriter-wasm@~0.4.1": "0.4.1",
     "npm:lightningcss@^1.30.2": "1.30.2"
   },
   "jsr": {
@@ -63,6 +64,9 @@
     },
     "detect-libc@2.1.1": {
       "integrity": "sha512-ecqj/sy1jcK1uWrwpR67UhYrIFQ+5WlGxth34WquCbamhFA6hkkwiu37o6J5xCHdo1oixJRfVRw+ywV+Hq/0Aw=="
+    },
+    "html-rewriter-wasm@0.4.1": {
+      "integrity": "sha512-lNovG8CMCCmcVB1Q7xggMSf7tqPCijZXaH4gL6iE8BFghdQCbaY5Met9i1x2Ex8m/cZHDUtXK9H6/znKamRP8Q=="
     },
     "lightningcss-android-arm64@1.30.2": {
       "integrity": "sha512-BH9sEdOCahSgmkVhBLeU7Hc9DWeZ1Eb6wNS6Da8igvUwAe0sqROHddIlvU06q3WyXVEOYDZ6ykBZQnjTbmo4+A==",
@@ -151,6 +155,7 @@
       "jsr:@std/fs@^1.0.19",
       "jsr:@std/media-types@^1.1.0",
       "jsr:@std/path@^1.1.2",
+      "npm:html-rewriter-wasm@~0.4.1",
       "npm:lightningcss@^1.30.2"
     ]
   }

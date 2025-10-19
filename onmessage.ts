@@ -3,6 +3,7 @@ import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 import { encodeBase64Url } from "@std/encoding/base64url";
 import { crypto } from "@std/crypto";
+import rewrite from "./rewrite.ts";
 
 export default (config: FlintConfig) => async (e: MessageEvent) => {
   let { index, pathname, urls }: {
@@ -11,7 +12,7 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
     urls: Record<string, string>;
   } = e.data;
 
-  config.resolve = (key: string) => urls[key];
+  config.urls = urls;
 
   const route = config.routes.find((r) => r.index === index);
   const distDir = Path.join(Deno.cwd(), config.dist);
@@ -37,7 +38,7 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
       pathname,
       src: config.src,
       dist: config.dist,
-      resolve: config.resolve,
+      urls: config.urls,
       sourcemap: false,
     });
 
@@ -70,6 +71,12 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
     pathname = Path.join(distDir, "files", pathname);
 
     await Fs.ensureDir(Path.dirname(pathname));
+
+    if (pathname.endsWith(".html")) {
+      result = await rewrite(result, config.urls);
+
+      result = new TextEncoder().encode(result);
+    }
 
     await Deno.writeFile(pathname, result);
   }
