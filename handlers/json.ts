@@ -2,7 +2,7 @@ import type {
   FlintRouteContext,
   FlintRouteHandler,
   FlintRouteResponse,
-} from "../types.ts";
+} from "../mod.ts";
 
 type Value = string | number | boolean | null | ValueMap | ValueArray;
 interface ValueMap extends Record<string, Value> {}

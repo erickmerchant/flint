@@ -1,4 +1,4 @@
-import type { FlintConfig, FlintRoute } from "./types.ts";
+import type { FlintConfig, FlintRoute } from "./mod.ts";
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 import rewrite from "./rewrite.ts";

@@ -1,4 +1,4 @@
-import type { FlintConfig } from "./types.ts";
+import type { FlintConfig } from "./mod.ts";
 import * as Path from "@std/path";
 import { contentType } from "@std/media-types";
 import { encodeBase64Url } from "@std/encoding/base64url";

@@ -1,4 +1,4 @@
-import type { FlintRouteContext, FlintRouteResponse } from "../types.ts";
+import type { FlintRouteContext, FlintRouteResponse } from "../mod.ts";
 
 import * as Path from "@std/path";
 import * as LightningCSS from "lightningcss";
