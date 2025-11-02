@@ -126,9 +126,9 @@ export function glob(
   };
 }
 
-export default function (src: string, dist: string): App {
+export default function (dist?: string, src?: string): App {
   const config: FlintConfig = {
-    src: src ?? "src",
+    src: src ?? ".",
     dist: dist ?? "dist",
     routes: [],
     urls: {},
