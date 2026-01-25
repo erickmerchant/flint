@@ -1,6 +1,6 @@
 {
   "name": "@flint/framework",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "license": "MIT",
   "exports": {
     ".": "./mod.ts",
@@ -22,7 +22,7 @@
     "@std/media-types": "jsr:@std/media-types@^1.1.0",
     "@std/path": "jsr:@std/path@^1.1.4",
     "html-rewriter-wasm": "npm:html-rewriter-wasm@^0.4.1",
-    "lightningcss": "npm:lightningcss@^1.31.0"
+    "lightningcss": "npm:lightningcss@^1.31.1"
   },
   "compilerOptions": {
     "lib": ["deno.ns", "deno.worker"]
