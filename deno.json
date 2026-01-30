@@ -14,8 +14,8 @@
     "./handlers/redirect": "./handlers/redirect.ts"
   },
   "imports": {
-    "@std/async": "jsr:@std/async@^1.1.0",
-    "@std/cli": "jsr:@std/cli@^1.0.26",
+    "@std/async": "jsr:@std/async@^1.1.1",
+    "@std/cli": "jsr:@std/cli@^1.0.27",
     "@std/crypto": "jsr:@std/crypto@^1.0.5",
     "@std/encoding": "jsr:@std/encoding@^1.0.10",
     "@std/fs": "jsr:@std/fs@^1.0.22",
