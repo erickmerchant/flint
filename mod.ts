@@ -148,10 +148,12 @@ export default function (dist?: string, src?: string): App {
     ): App {
       if (typeof pattern === "function" && handler == null) {
         config.notFound = pattern;
-      } else if (typeof pattern !== "function" && handler != null) {
+      } else if (typeof pattern !== "function") {
         if (cache == null && !(pattern instanceof URLPattern)) {
           cache = [pattern];
         }
+
+        handler ??= filePlugin;
 
         config.routes.push({
           index: index++,
