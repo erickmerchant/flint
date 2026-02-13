@@ -175,7 +175,7 @@ export default function (dist?: string, src?: string): App {
         handler ??= filePlugin;
 
         if (cache == null) {
-          if ((pattern instanceof URLPattern)) {
+          if (pattern instanceof URLPattern) {
             cache = glob(pattern, (pathname: string) => [pathname]);
           } else {
             cache = [pattern];
