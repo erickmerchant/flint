@@ -17,6 +17,8 @@ export default function (
     let result = await handler(context);
 
     if (result instanceof Response) {
+      result.headers.set("Content-Type", "application/json");
+
       return result;
     }
 
@@ -24,6 +26,8 @@ export default function (
       result = new TextDecoder().decode(result);
     }
 
-    return new Response(JSON.stringify(result));
+    return new Response(JSON.stringify(result), {
+      headers: { "Content-Type": "application/json" },
+    });
   };
 }

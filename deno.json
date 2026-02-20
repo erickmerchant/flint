@@ -1,6 +1,6 @@
 {
   "name": "@flint/framework",
-  "version": "0.22.0",
+  "version": "0.23.0",
   "license": "MIT",
   "exports": {
     ".": "./mod.ts",
@@ -14,17 +14,18 @@
     "./handlers/redirect": "./handlers/redirect.ts"
   },
   "imports": {
-    "@std/async": "jsr:@std/async@^1.1.1",
-    "@std/cli": "jsr:@std/cli@^1.0.27",
+    "@std/async": "jsr:@std/async@^1.2.0",
+    "@std/cli": "jsr:@std/cli@^1.0.28",
     "@std/crypto": "jsr:@std/crypto@^1.0.5",
     "@std/encoding": "jsr:@std/encoding@^1.0.10",
-    "@std/fs": "jsr:@std/fs@^1.0.22",
+    "@std/fs": "jsr:@std/fs@^1.0.23",
     "@std/media-types": "jsr:@std/media-types@^1.1.0",
     "@std/path": "jsr:@std/path@^1.1.4",
     "html-rewriter-wasm": "npm:html-rewriter-wasm@^0.4.1",
     "lightningcss": "npm:lightningcss@^1.31.1"
   },
+  "unstable": ["bundle"],
   "compilerOptions": {
-    "lib": ["deno.ns", "deno.worker"]
+    "lib": ["deno.ns", "deno.unstable", "deno.worker"]
   }
 }
