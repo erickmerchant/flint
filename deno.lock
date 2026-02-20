@@ -1,6 +1,7 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@cfa/gitignore-parser@~0.1.4": "0.1.4",
     "jsr:@std/async@^1.2.0": "1.2.0",
     "jsr:@std/cli@^1.0.28": "1.0.28",
     "jsr:@std/crypto@^1.0.5": "1.0.5",
@@ -15,6 +16,9 @@
     "npm:lightningcss@^1.31.1": "1.31.1"
   },
   "jsr": {
+    "@cfa/gitignore-parser@0.1.4": {
+      "integrity": "60d3563bbd7b8797f50c28585d7d74d231fbb56a1d9df7b0673c27cbdf60a23a"
+    },
     "@std/async@1.2.0": {
       "integrity": "c059c6f6d95ca7cc012ae8e8d7164d1697113d54b0b679e4372b354b11c2dee5"
     },
@@ -150,6 +154,7 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@cfa/gitignore-parser@~0.1.4",
       "jsr:@std/async@^1.2.0",
       "jsr:@std/cli@^1.0.28",
       "jsr:@std/crypto@^1.0.5",

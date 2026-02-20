@@ -1,6 +1,6 @@
 {
   "name": "@flint/framework",
-  "version": "0.23.0",
+  "version": "0.24.0",
   "license": "MIT",
   "exports": {
     ".": "./mod.ts",
@@ -14,6 +14,7 @@
     "./handlers/redirect": "./handlers/redirect.ts"
   },
   "imports": {
+    "@cfa/gitignore-parser": "jsr:@cfa/gitignore-parser@^0.1.4",
     "@std/async": "jsr:@std/async@^1.2.0",
     "@std/cli": "jsr:@std/cli@^1.0.28",
     "@std/crypto": "jsr:@std/crypto@^1.0.5",
