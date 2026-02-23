@@ -29,6 +29,7 @@ export type FlintRouteContext = {
   src: string;
   dist: string;
   sourcemap: boolean;
+  splitting: boolean;
   urls: Record<string, string>;
 };
 
@@ -102,7 +103,7 @@ export function glob(
   handler: (
     path: string,
     params: FlintParams,
-  ) => Array<string> | Promise<string>,
+  ) => string | Array<string> | Promise<string | Array<string>>,
 ): (dir: string) => Promise<Array<string>> | Array<string> {
   return async (publicDir: string) => {
     const items = [];
@@ -117,7 +118,9 @@ export function glob(
 
       if (match) {
         items.push(
-          ...await handler(subpath, match.pathname.groups ?? {}),
+          ...([] as Array<string>).concat(
+            await handler(subpath, match.pathname.groups ?? {}),
+          ),
         );
       }
     }

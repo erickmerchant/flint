@@ -4,7 +4,7 @@ import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 
 export default async function (
-  { pathname, src, sourcemap }: FlintRouteContext,
+  { pathname, src, sourcemap, dist, splitting }: FlintRouteContext,
 ): Promise<FlintRouteResponse> {
   let filename = Path.join(Deno.cwd(), src, pathname);
 
@@ -17,20 +17,27 @@ export default async function (
     }));
   }
 
-  const cmd = new Deno.Command(Deno.execPath(), {
-    args: [
-      "bundle",
-      "--platform=browser",
-      "--minify",
-      "--quiet",
-      sourcemap ? "--sourcemap=inline" : null,
-      filename,
-    ].filter((a) => a != null),
-    cwd: Deno.cwd(),
-    stdin: "piped",
-    stdout: "piped",
+  const bundle = await Deno.bundle({
+    entrypoints: [filename],
+    sourcemap: sourcemap ? "inline" : undefined,
+    platform: "browser",
+    minify: true,
+    write: false,
+    outputDir: Path.join(dist, "files", Path.dirname(pathname)),
+    codeSplitting: splitting,
   });
-  const code = await cmd.spawn().output();
 
-  return code.stdout;
+  let result;
+
+  for (const file of bundle.outputFiles!) {
+    if (!result) {
+      result = file.text();
+    } else {
+      await Fs.ensureDir(Path.join(dist, "files", Path.dirname(pathname)));
+
+      await Deno.writeTextFile(file.path, file.text());
+    }
+  }
+
+  return result ?? "";
 }

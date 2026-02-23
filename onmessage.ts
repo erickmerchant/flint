@@ -1,7 +1,8 @@
 import type { FlintConfig } from "./mod.ts";
+import * as ETag from "@std/http/etag";
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
-import { encodeBase64Url } from "@std/encoding/base64url";
+import { encodeBase32 } from "@std/encoding/base32";
 import { crypto } from "@std/crypto";
 import rewrite from "./rewrite.ts";
 
@@ -40,6 +41,7 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
       dist: config.dist,
       urls: config.urls,
       sourcemap: false,
+      splitting: true,
     });
 
     if (result instanceof Response) return;
@@ -52,8 +54,9 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
       pathname += "index.html";
     }
 
+    const etag = await ETag.eTag(result, { weak: true });
     const buffer = await crypto.subtle.digest("SHA-256", result);
-    const hash = encodeBase64Url(buffer).substring(0, 16);
+    const hash = encodeBase32(buffer).substring(0, 8);
 
     if (route.fingerprint) {
       pathname = Path.format({
@@ -65,7 +68,7 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
 
       postMessage(pathname);
     } else {
-      postMessage(`W/"${hash}"`);
+      postMessage(etag);
     }
 
     pathname = Path.join(distDir, "files", pathname);

@@ -1,12 +1,11 @@
 import type { FlintConfig } from "./mod.ts";
 import * as Path from "@std/path";
+import * as ETag from "@std/http/etag";
 import { contentType } from "@std/media-types";
-import { encodeBase64Url } from "@std/encoding/base64url";
-import { crypto } from "@std/crypto";
 import rewrite from "./rewrite.ts";
 
 const fingerprintURLPattern = new URLPattern({
-  pathname: "*-([A-Za-z0-9_-]{16}).*",
+  pathname: "*-([A-Z2-7]{8}).*",
 });
 
 export default function (
@@ -81,6 +80,7 @@ export default function (
             dist: config.dist,
             urls: config.urls,
             sourcemap: false,
+            splitting: false,
           });
 
           if (result instanceof Response) return result;
@@ -93,9 +93,7 @@ export default function (
             result = new TextEncoder().encode(result);
           }
 
-          const buffer = await crypto.subtle.digest("SHA-256", result);
-          const hash = encodeBase64Url(buffer).substring(0, 16);
-          const etag = `W/"${hash}"`;
+          const etag = await ETag.eTag(result, { weak: true });
 
           const ifNoneMatch = req.headers.get("If-None-Match");
 
@@ -137,6 +135,7 @@ export default function (
             dist: config.dist,
             urls: config.urls,
             sourcemap: false,
+            splitting: false,
           });
         });
 

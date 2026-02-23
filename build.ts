@@ -94,6 +94,7 @@ export default async function (config: FlintConfig) {
       dist: config.dist,
       urls: config.urls,
       sourcemap: false,
+      splitting: true,
     });
 
     if (!(result instanceof Response)) {
