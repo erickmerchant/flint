@@ -6,4 +6,4 @@ change at any time before 1.0.0. I'm actively working on the docs and tests, and
 when those are done version 1.0.0 will be ready.
 
 Flint requires `"unstable": ["bundle"]` in your deno.json if you plan to use
-`handlers/js`.
+`handlers/js.ts`.
