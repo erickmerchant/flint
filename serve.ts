@@ -105,7 +105,7 @@ export default function (
           }
 
           if (type === "text/html") {
-            result = await rewrite(result, config.urls);
+            result = await rewrite(result, url.pathname, config, false);
           }
 
           return new Response(result, {
@@ -145,7 +145,7 @@ export default function (
           result = new TextEncoder().encode(result);
         }
 
-        result = await rewrite(result, config.urls);
+        result = await rewrite(result, "/404.html", config, false);
 
         return new Response(result, {
           status: 404,

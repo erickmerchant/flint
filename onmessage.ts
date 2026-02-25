@@ -71,17 +71,17 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
       postMessage(etag);
     }
 
-    pathname = Path.join(distDir, "files", pathname);
+    const filepath = Path.join(distDir, "files", pathname);
 
-    await Fs.ensureDir(Path.dirname(pathname));
+    await Fs.ensureDir(Path.dirname(filepath));
 
-    if (pathname.endsWith(".html")) {
-      result = await rewrite(result, config.urls);
+    if (filepath.endsWith(".html")) {
+      result = await rewrite(result, pathname, config, true);
 
       result = new TextEncoder().encode(result);
     }
 
-    await Deno.writeFile(pathname, result);
+    await Deno.writeFile(filepath, result);
   }
   self.close();
 };
