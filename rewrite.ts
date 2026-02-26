@@ -96,18 +96,24 @@ export default async function (
         ) {
           u = `/${Path.relative(Path.join(Deno.cwd(), dist, "files"), u)}`;
 
-          imports[
-            Path.join(
-              Path.dirname(path),
-              `./${Path.relative(Path.dirname(value), u)}`,
-            )
-          ] = u;
+          const k = Path.join(
+            Path.dirname(path),
+            `./${Path.relative(Path.dirname(value), u)}`,
+          );
+
+          if (k !== u) {
+            imports[
+              k
+            ] = u;
+          }
         }
 
-        el.before(
-          `<script type="importmap">${JSON.stringify({ imports })}</script>`,
-          { html: true },
-        );
+        if (Object.keys(imports).length) {
+          el.before(
+            `<script type="importmap">${JSON.stringify({ imports })}</script>`,
+            { html: true },
+          );
+        }
       } else {
         if (value) el.setAttribute("src", value);
       }
