@@ -8,7 +8,7 @@ export default async function (
   path: string,
   { urls, dist }: FlintConfig,
   inlining: boolean,
-): Promise<string> {
+): Promise<Uint8Array<ArrayBuffer>> {
   const decoder = new TextDecoder();
 
   let output = "";
@@ -161,7 +161,9 @@ export default async function (
     await rewriter.write(html);
     await rewriter.end();
 
-    return output;
+    const result = new TextEncoder().encode(output);
+
+    return result;
   } finally {
     rewriter.free(); // Remember to free memory
   }

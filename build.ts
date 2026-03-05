@@ -108,6 +108,8 @@ export default async function (config: FlintConfig) {
 
       result = await rewrite(result, "/404.html", config, true);
 
+      result = new TextDecoder().decode(result);
+
       await Deno.writeTextFile(
         path,
         result,

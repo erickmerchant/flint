@@ -54,7 +54,6 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
       pathname += "index.html";
     }
 
-    const etag = await ETag.eTag(result, { weak: true });
     const buffer = await crypto.subtle.digest("SHA-256", result);
     const hash = encodeBase32(buffer).substring(0, 8);
 
@@ -65,10 +64,6 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
         ext: Path.extname(pathname),
         name: `${Path.basename(pathname, Path.extname(pathname))}-${hash}`,
       });
-
-      postMessage(pathname);
-    } else {
-      postMessage(etag);
     }
 
     const filepath = Path.join(distDir, "files", pathname);
@@ -77,8 +72,14 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
 
     if (filepath.endsWith(".html")) {
       result = await rewrite(result, pathname, config, true);
+    }
 
-      result = new TextEncoder().encode(result);
+    const etag = await ETag.eTag(result, { weak: true });
+
+    if (route.fingerprint) {
+      postMessage(pathname);
+    } else {
+      postMessage(etag);
     }
 
     await Deno.writeFile(filepath, result);

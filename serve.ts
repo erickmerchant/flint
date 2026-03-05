@@ -93,6 +93,10 @@ export default function (
             result = new TextEncoder().encode(result);
           }
 
+          if (type === "text/html") {
+            result = await rewrite(result, url.pathname, config, false);
+          }
+
           const etag = await ETag.eTag(result, { weak: true });
 
           const ifNoneMatch = req.headers.get("If-None-Match");
@@ -102,10 +106,6 @@ export default function (
             ifNoneMatch == etag
           ) {
             return new Response(null, { status: 304 });
-          }
-
-          if (type === "text/html") {
-            result = await rewrite(result, url.pathname, config, false);
           }
 
           return new Response(result, {

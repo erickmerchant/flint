@@ -3,6 +3,7 @@ import type {
   FlintRouteHandler,
   FlintRouteResponse,
 } from "../mod.ts";
+import * as ETag from "@std/http/etag";
 
 type Value = string | number | boolean | null | ValueMap | ValueArray;
 interface ValueMap extends Record<string, Value> {}
@@ -26,8 +27,24 @@ export default function (
       result = new TextDecoder().decode(result);
     }
 
-    return new Response(JSON.stringify(result), {
-      headers: { "Content-Type": "application/json" },
+    result = JSON.stringify(result);
+
+    const etag = await ETag.eTag(result, { weak: true });
+
+    const ifNoneMatch = context.request.headers.get("If-None-Match");
+
+    if (
+      ifNoneMatch &&
+      ifNoneMatch == etag
+    ) {
+      return new Response(null, { status: 304 });
+    }
+
+    return new Response(result, {
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+        "Etag": etag,
+      },
     });
   };
 }
