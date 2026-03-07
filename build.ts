@@ -2,6 +2,7 @@ import type { FlintConfig, FlintRoute } from "./mod.ts";
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 import rewrite from "./rewrite.ts";
+import os from "node:os";
 
 export default async function (config: FlintConfig) {
   const urls: Record<string, string> = {};
@@ -24,8 +25,7 @@ export default async function (config: FlintConfig) {
 	`,
   );
 
-  const routeItems = new Map<FlintRoute, Array<string>>();
-  const routeItemsPromises: Array<Promise<boolean>> = [];
+  const routeItems: Map<FlintRoute, Array<string>> = new Map();
 
   for (
     const route of config.routes.toSorted((a, b) =>
@@ -33,28 +33,22 @@ export default async function (config: FlintConfig) {
     )
   ) {
     if (route.cache) {
-      const cachePromise = typeof route.cache === "function"
+      const pathnames: Array<string> = await (typeof route.cache === "function"
         ? route.cache(publicDir)
-        : route.cache;
-      const routeItemResult: Array<string> = [];
+        : route.cache);
 
-      routeItems.set(route, routeItemResult);
-
-      routeItemsPromises.push(
-        Promise.resolve(cachePromise).then((result) => {
-          routeItemResult.push(...result);
-
-          return true;
-        }),
-      );
+      routeItems.set(route, pathnames);
     }
   }
 
-  await Promise.all(routeItemsPromises);
-
   for (const [route, items] of routeItems) {
     const cacheResultPromises = [];
-    for (const pathname of items) {
+
+    for (let cpus = os.cpus().length; cpus > 0; cpus--) {
+      let pathname = items.shift();
+
+      if (!pathname) continue;
+
       const { resolve, promise } = Promise.withResolvers();
       const builder = new Worker(
         new URL(`file:///${Path.join(distDir, "builder.ts")}`).href,
@@ -71,12 +65,24 @@ export default async function (config: FlintConfig) {
 
       builder.onmessage = (e: MessageEvent<string>) => {
         if (route.fingerprint) {
-          urls[pathname] = e.data;
+          urls[pathname!] = e.data;
         } else {
-          etags[pathname] = e.data;
+          etags[pathname!] = e.data;
         }
 
-        resolve(true);
+        if (items.length) {
+          pathname = items.shift()!;
+
+          builder.postMessage({
+            index: route.index,
+            pathname,
+            urls,
+          });
+        } else {
+          builder.terminate();
+
+          resolve(true);
+        }
       };
 
       cacheResultPromises.push(promise);

@@ -20,8 +20,6 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
   let match: boolean | URLPatternResult | null = false;
 
   if (!route) {
-    self.close();
-
     return;
   }
 
@@ -84,5 +82,4 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
 
     await Deno.writeFile(filepath, result);
   }
-  self.close();
 };
