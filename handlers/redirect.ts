@@ -21,7 +21,7 @@ function init(status: number): Init {
       context: FlintRouteContext,
     ): Promise<FlintRouteResponse> =>
       new Response(null, {
-        status: status,
+        status,
         headers: {
           Location: `${
             typeof location === "function" ? await location(context) : location

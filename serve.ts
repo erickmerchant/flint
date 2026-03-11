@@ -12,6 +12,7 @@ export default function (
   config: FlintConfig,
 ): (req: Request) => Promise<Response> {
   const distDir = Path.join(Deno.cwd(), config.dist);
+  let notFountResult;
 
   return async function (req: Request): Promise<Response> {
     const url = new URL(req.url);
@@ -57,8 +58,8 @@ export default function (
         status: 200,
         headers,
       });
-    } catch (_) {
-      //
+    } catch (_e) {
+      // console.error(_e);
     }
 
     try {
@@ -117,17 +118,18 @@ export default function (
           });
         }
       }
-    } catch (e) {
-      console.error(e);
+    } catch (_e) {
+      // console.error(_e);
     }
 
-    try {
-      if (config.notFound != null) {
+    if (config.notFound != null) {
+      try {
         const notFound = config.notFound;
-        let result = await Deno.readTextFile(
+
+        notFountResult ??= await (Deno.readTextFile(
           Path.join(distDir, "files/404.html"),
-        ).catch(() => {
-          return notFound({
+        ).catch(() =>
+          notFound({
             request: req,
             params: {},
             pathname: url.pathname,
@@ -136,26 +138,31 @@ export default function (
             urls: config.urls,
             sourcemap: false,
             splitting: false,
-          });
-        });
+          })
+        ));
 
-        if (result instanceof Response) return result;
+        if (notFountResult instanceof Response) return notFountResult;
 
-        if (typeof result === "string") {
-          result = new TextEncoder().encode(result);
+        if (typeof notFountResult === "string") {
+          notFountResult = new TextEncoder().encode(notFountResult);
         }
 
-        result = await rewrite(result, "/404.html", config, false);
+        notFountResult = await rewrite(
+          notFountResult,
+          "/404.html",
+          config,
+          false,
+        );
 
-        return new Response(result, {
+        return new Response(notFountResult, {
           status: 404,
           headers: {
             "Content-Type": "text/html",
           },
         });
+      } catch (_e) {
+        // console.error(_e);
       }
-    } catch (e) {
-      console.error(e);
     }
 
     return new Response("Not Found", { status: 404 });
