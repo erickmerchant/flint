@@ -3,6 +3,7 @@ import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 import rewrite from "./rewrite.ts";
 import os from "node:os";
+import { toUint8Array } from "./utils.ts";
 
 export default async function (config: FlintConfig) {
   const urls: Record<string, string> = {};
@@ -108,9 +109,7 @@ export default async function (config: FlintConfig) {
 
       await Fs.ensureDir(Path.dirname(path));
 
-      if (typeof result === "string") {
-        result = new TextEncoder().encode(result);
-      }
+      result = await toUint8Array(result);
 
       result = await rewrite(result, "/404.html", config, true);
 

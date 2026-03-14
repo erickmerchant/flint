@@ -33,10 +33,7 @@ export default function (
 
     const ifNoneMatch = context.request.headers.get("If-None-Match");
 
-    if (
-      ifNoneMatch &&
-      ifNoneMatch == etag
-    ) {
+    if (!ETag.ifNoneMatch(ifNoneMatch, etag)) {
       return new Response(null, { status: 304 });
     }
 

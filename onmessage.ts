@@ -5,6 +5,7 @@ import * as Fs from "@std/fs";
 import { encodeBase32 } from "@std/encoding/base32";
 import { crypto } from "@std/crypto";
 import rewrite from "./rewrite.ts";
+import { toUint8Array } from "./utils.ts";
 
 export default (config: FlintConfig) => async (e: MessageEvent) => {
   let { index, pathname, urls }: {
@@ -44,9 +45,7 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
 
     if (result instanceof Response) return;
 
-    if (typeof result === "string") {
-      result = new TextEncoder().encode(result);
-    }
+    result = await toUint8Array(result);
 
     if (pathname.endsWith("/")) {
       pathname += "index.html";

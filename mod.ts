@@ -18,6 +18,7 @@ export type FlintConfig = {
 export type FlintParams = Record<string, string | undefined>;
 
 export type FlintRouteResponse =
+  | ReadableStream<Uint8Array<ArrayBuffer>>
   | Uint8Array<ArrayBuffer>
   | string
   | Response;

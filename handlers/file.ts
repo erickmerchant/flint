@@ -6,5 +6,5 @@ export default async function filePlugin(
 ): Promise<FlintRouteResponse> {
   const filename = Path.join(Deno.cwd(), src, pathname);
 
-  return await Deno.readFile(filename);
+  return (await Deno.open(filename, { read: true })).readable;
 }

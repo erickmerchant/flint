@@ -61,6 +61,19 @@ export default async function (
     },
   });
 
+  rewriter.on("link:not([rel='stylesheet'])[href]", {
+    element(el) {
+      let value = el.getAttribute("href");
+      const url = new URL(`file:///${value}`);
+
+      value = url.pathname;
+
+      value = urls[value] ?? value;
+
+      if (value) el.setAttribute("href", value);
+    },
+  });
+
   rewriter.on("script[src]", {
     async element(el) {
       let value = el.getAttribute("src");

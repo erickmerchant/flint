@@ -3,6 +3,7 @@ import * as Path from "@std/path";
 import * as ETag from "@std/http/etag";
 import { contentType } from "@std/media-types";
 import rewrite from "./rewrite.ts";
+import { toUint8Array } from "./utils.ts";
 
 const fingerprintURLPattern = new URLPattern({
   pathname: "*-([A-Z2-7]{8}).*",
@@ -12,7 +13,7 @@ export default function (
   config: FlintConfig,
 ): (req: Request) => Promise<Response> {
   const distDir = Path.join(Deno.cwd(), config.dist);
-  let notFountResult;
+  let notFoundResult: Uint8Array<ArrayBuffer>;
 
   return async function (req: Request): Promise<Response> {
     const url = new URL(req.url);
@@ -47,9 +48,10 @@ export default function (
         pathname += "index.html";
       }
 
-      const result = await Deno.readFile(
+      const result = (await Deno.open(
         Path.join(Deno.cwd(), config.dist, "files", pathname),
-      );
+        { read: true },
+      )).readable;
       const type = contentType(Path.extname(pathname)) ?? "text/plain";
 
       headers["Content-Type"] = type;
@@ -90,9 +92,7 @@ export default function (
             ? "text/html"
             : (contentType(Path.extname(url.pathname)) ?? "text/plain");
 
-          if (typeof result === "string") {
-            result = new TextEncoder().encode(result);
-          }
+          result = await toUint8Array(result);
 
           if (type === "text/html") {
             result = await rewrite(result, url.pathname, config, false);
@@ -102,10 +102,7 @@ export default function (
 
           const ifNoneMatch = req.headers.get("If-None-Match");
 
-          if (
-            ifNoneMatch &&
-            ifNoneMatch == etag
-          ) {
+          if (!ETag.ifNoneMatch(ifNoneMatch, etag)) {
             return new Response(null, { status: 304 });
           }
 
@@ -126,35 +123,37 @@ export default function (
       try {
         const notFound = config.notFound;
 
-        notFountResult ??= await (Deno.readTextFile(
-          Path.join(distDir, "files/404.html"),
-        ).catch(() =>
-          notFound({
-            request: req,
-            params: {},
-            pathname: url.pathname,
-            src: config.src,
-            dist: config.dist,
-            urls: config.urls,
-            sourcemap: false,
-            splitting: false,
-          })
-        ));
+        if (!notFoundResult) {
+          let result = await (Deno.readTextFile(
+            Path.join(distDir, "files/404.html"),
+          ).catch(() =>
+            notFound({
+              request: req,
+              params: {},
+              pathname: url.pathname,
+              src: config.src,
+              dist: config.dist,
+              urls: config.urls,
+              sourcemap: false,
+              splitting: false,
+            })
+          ));
 
-        if (notFountResult instanceof Response) return notFountResult;
+          if (result instanceof Response) return result;
 
-        if (typeof notFountResult === "string") {
-          notFountResult = new TextEncoder().encode(notFountResult);
+          result = await toUint8Array(result);
+
+          result = await rewrite(
+            result,
+            "/404.html",
+            config,
+            false,
+          );
+
+          notFoundResult = result;
         }
 
-        notFountResult = await rewrite(
-          notFountResult,
-          "/404.html",
-          config,
-          false,
-        );
-
-        return new Response(notFountResult, {
+        return new Response(notFoundResult, {
           status: 404,
           headers: {
             "Content-Type": "text/html",
