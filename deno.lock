@@ -16,7 +16,7 @@
     "jsr:@std/path@^1.1.4": "1.1.4",
     "jsr:@std/streams@^1.0.17": "1.0.17",
     "npm:@types/node@*": "22.15.15",
-    "npm:html-minifier-next@^5.2.0": "5.2.0",
+    "npm:html-minifier-next@^5.2.1": "5.2.1",
     "npm:html-rewriter-wasm@~0.4.1": "0.4.1",
     "npm:lightningcss@^1.32.0": "1.32.0"
   },
@@ -209,8 +209,8 @@
     "entities@7.0.1": {
       "integrity": "sha512-TWrgLOFUQTH994YUyl1yT4uyavY5nNB5muff+RtWaqNVCAK408b5ZnnbNAUEWLTCpum9w6arT70i1XdQ4UeOPA=="
     },
-    "html-minifier-next@5.2.0": {
-      "integrity": "sha512-11wQG8dw+sIEdIt8LNBdV8R8nyXwAX4ni8WSpTdulP3RN4evUSx12cwe0FuO9HRsteBTKUUlKZkS/2XRBSYfLg==",
+    "html-minifier-next@5.2.1": {
+      "integrity": "sha512-ANbwwc080hhlztP4ZpQGjYFHzb8Bk1PEynOnK889i5thPvxzsVq2mX1J1+U1ptlAR0eOh8NA06HggYKyOB1FTw==",
       "dependencies": [
         "commander@14.0.3",
         "entities@7.0.1",
@@ -312,8 +312,8 @@
     "picocolors@1.1.1": {
       "integrity": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="
     },
-    "sax@1.5.0": {
-      "integrity": "sha512-21IYA3Q5cQf089Z6tgaUTr7lDAyzoTPx5HRtbhsME8Udispad8dC/+sziTNugOEx54ilvatQ9YCzl4KQLPcRHA=="
+    "sax@1.6.0": {
+      "integrity": "sha512-6R3J5M4AcbtLUdZmRv2SygeVaM7IhrLXu9BmnOGmmACak8fiUtOsYNWUS4uK7upbmHIBbLBeFeI//477BKLBzA=="
     },
     "source-map-js@1.2.1": {
       "integrity": "sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA=="
@@ -341,8 +341,8 @@
       ],
       "bin": true
     },
-    "terser@5.46.0": {
-      "integrity": "sha512-jTwoImyr/QbOWFFso3YoU3ik0jBBDJ6JTOQiy/J2YxVJdZCc+5u7skhNwiOR3FQIygFqVUPHl7qbbxtjW2K3Qg==",
+    "terser@5.46.1": {
+      "integrity": "sha512-vzCjQO/rgUuK9sf8VJZvjqiqiHFaZLnOiimmUuOKODxWL8mm/xua7viT7aqX7dgPY60otQjUotzFMmCB4VdmqQ==",
       "dependencies": [
         "@jridgewell/source-map",
         "acorn",
@@ -366,7 +366,7 @@
       "jsr:@std/http@^1.0.25",
       "jsr:@std/media-types@^1.1.0",
       "jsr:@std/path@^1.1.4",
-      "npm:html-minifier-next@^5.2.0",
+      "npm:html-minifier-next@^5.2.1",
       "npm:html-rewriter-wasm@~0.4.1",
       "npm:lightningcss@^1.32.0"
     ]
