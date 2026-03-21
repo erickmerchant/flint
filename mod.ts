@@ -21,6 +21,7 @@ export type FlintRouteResponse =
   | ReadableStream<Uint8Array<ArrayBuffer>>
   | Uint8Array<ArrayBuffer>
   | string
+  | { toString(): string }
   | Response;
 
 export type FlintRouteContext = {

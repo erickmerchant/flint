@@ -2,8 +2,13 @@ export async function toUint8Array(
   result:
     | ReadableStream<Uint8Array<ArrayBuffer>>
     | Uint8Array<ArrayBuffer>
-    | string,
+    | string
+    | { toString(): string },
 ): Promise<Uint8Array<ArrayBuffer>> {
+  if (result instanceof Uint8Array) {
+    return result;
+  }
+
   if (result instanceof ReadableStream) {
     const reader = result.getReader();
 
@@ -17,12 +22,8 @@ export async function toUint8Array(
       values.push(...value);
     }
 
-    result = new Uint8Array(values);
+    return new Uint8Array(values);
   }
 
-  if (typeof result === "string") {
-    result = new TextEncoder().encode(result);
-  }
-
-  return result;
+  return new TextEncoder().encode(result?.toString?.() ?? result);
 }

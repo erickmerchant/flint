@@ -32,7 +32,7 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
 
   if (match) {
     const request = new Request(`file://${pathname}`);
-    let result = await route.handler({
+    const result = await route.handler({
       request,
       params: match === true ? {} : (match.pathname.groups ?? {}),
       pathname,
@@ -45,13 +45,13 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
 
     if (result instanceof Response) return;
 
-    result = await toUint8Array(result);
+    let unint8Array = await toUint8Array(result);
 
     if (pathname.endsWith("/")) {
       pathname += "index.html";
     }
 
-    const buffer = await crypto.subtle.digest("SHA-256", result);
+    const buffer = await crypto.subtle.digest("SHA-256", unint8Array);
     const hash = encodeBase32(buffer).substring(0, 8);
 
     if (route.fingerprint) {
@@ -68,10 +68,10 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
     await Fs.ensureDir(Path.dirname(filepath));
 
     if (filepath.endsWith(".html")) {
-      result = await rewrite(result, pathname, config, true);
+      unint8Array = await rewrite(unint8Array, pathname, config, true);
     }
 
-    const etag = await ETag.eTag(result, { weak: true });
+    const etag = await ETag.eTag(unint8Array, { weak: true });
 
     if (route.fingerprint) {
       postMessage(pathname);
@@ -79,6 +79,6 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
       postMessage(etag);
     }
 
-    await Deno.writeFile(filepath, result);
+    await Deno.writeFile(filepath, unint8Array);
   }
 };

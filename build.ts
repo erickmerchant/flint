@@ -93,7 +93,7 @@ export default async function (config: FlintConfig) {
   }
 
   if (config.notFound) {
-    let result = await config.notFound({
+    const result = await config.notFound({
       request: new Request("file://404.html"),
       params: {},
       pathname: "404.html",
@@ -109,15 +109,15 @@ export default async function (config: FlintConfig) {
 
       await Fs.ensureDir(Path.dirname(path));
 
-      result = await toUint8Array(result);
+      const uint8Array = await toUint8Array(result);
 
-      result = await rewrite(result, "/404.html", config, true);
+      const rewritten = await rewrite(uint8Array, "/404.html", config, true);
 
-      result = new TextDecoder().decode(result);
+      const str = new TextDecoder().decode(rewritten);
 
       await Deno.writeTextFile(
         path,
-        result,
+        str,
       );
     }
   }

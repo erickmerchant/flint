@@ -75,7 +75,7 @@ export default function (
         }
 
         if (match) {
-          let result = await route.handler({
+          const result = await route.handler({
             request: req,
             params: match === true ? {} : (match.pathname.groups ?? {}),
             pathname: url.pathname,
@@ -92,13 +92,18 @@ export default function (
             ? "text/html"
             : (contentType(Path.extname(url.pathname)) ?? "text/plain");
 
-          result = await toUint8Array(result);
+          let unint8Array = await toUint8Array(result);
 
           if (type === "text/html") {
-            result = await rewrite(result, url.pathname, config, false);
+            unint8Array = await rewrite(
+              unint8Array,
+              url.pathname,
+              config,
+              false,
+            );
           }
 
-          const etag = await ETag.eTag(result, { weak: true });
+          const etag = await ETag.eTag(unint8Array, { weak: true });
 
           const ifNoneMatch = req.headers.get("If-None-Match");
 
@@ -106,7 +111,7 @@ export default function (
             return new Response(null, { status: 304 });
           }
 
-          return new Response(result, {
+          return new Response(unint8Array, {
             status: 200,
             headers: {
               "Content-Type": type,
@@ -124,7 +129,7 @@ export default function (
         const notFound = config.notFound;
 
         if (!notFoundResult) {
-          let result = await (Deno.readTextFile(
+          const result = await (Deno.readTextFile(
             Path.join(distDir, "files/404.html"),
           ).catch(() =>
             notFound({
@@ -141,16 +146,16 @@ export default function (
 
           if (result instanceof Response) return result;
 
-          result = await toUint8Array(result);
+          let unint8Array = await toUint8Array(result);
 
-          result = await rewrite(
-            result,
+          unint8Array = await rewrite(
+            unint8Array,
             "/404.html",
             config,
             false,
           );
 
-          notFoundResult = result;
+          notFoundResult = unint8Array;
         }
 
         return new Response(notFoundResult, {
