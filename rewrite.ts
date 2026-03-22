@@ -1,6 +1,5 @@
 import type { FlintConfig } from "./mod.ts";
 import { HTMLRewriter } from "html-rewriter-wasm";
-import { minify } from "html-minifier-next";
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 
@@ -174,13 +173,6 @@ export default async function (
   try {
     await rewriter.write(html);
     await rewriter.end();
-
-    output = await minify(output, {
-      minifyCSS: false,
-      minifyJS: false,
-      removeComments: true,
-      collapseWhitespace: true,
-    });
 
     const result = new TextEncoder().encode(output);
 
