@@ -5,7 +5,15 @@ import type {
 } from "../mod.ts";
 import * as ETag from "@std/http/etag";
 
-type Value = string | number | boolean | null | ValueMap | ValueArray;
+type Value =
+  | string
+  | number
+  | boolean
+  | null
+  | ValueMap
+  | ValueArray
+  | Response;
+
 interface ValueMap extends Record<string, Value> {}
 interface ValueArray extends Array<Value> {}
 
