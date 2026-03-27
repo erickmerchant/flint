@@ -68,7 +68,7 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
     await Fs.ensureDir(Path.dirname(filepath));
 
     if (filepath.endsWith(".html")) {
-      unint8Array = await rewrite(unint8Array, pathname, config, true);
+      unint8Array = await rewrite(unint8Array, config);
     }
 
     const etag = await ETag.eTag(unint8Array, { weak: true });

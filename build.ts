@@ -111,7 +111,7 @@ export default async function (config: FlintConfig) {
 
       const uint8Array = await toUint8Array(result);
 
-      const rewritten = await rewrite(uint8Array, "/404.html", config, true);
+      const rewritten = await rewrite(uint8Array, config);
 
       const str = new TextDecoder().decode(rewritten);
 

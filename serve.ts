@@ -97,9 +97,7 @@ export default function (
           if (type === "text/html") {
             unint8Array = await rewrite(
               unint8Array,
-              url.pathname,
               config,
-              false,
             );
           }
 
@@ -150,9 +148,7 @@ export default function (
 
           unint8Array = await rewrite(
             unint8Array,
-            "/404.html",
             config,
-            false,
           );
 
           notFoundResult = unint8Array;

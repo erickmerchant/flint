@@ -3,12 +3,11 @@ import * as Path from "@std/path";
 import * as LightningCSS from "lightningcss";
 import { encodeBase64 } from "@std/encoding/base64";
 
-export default function (
+export default async function (
   { src, pathname, urls, sourcemap }: FlintRouteContext,
-): FlintRouteResponse {
+): Promise<FlintRouteResponse> {
   const filename = Path.join(Deno.cwd(), src, pathname);
-
-  const { code, map } = LightningCSS.bundle({
+  const { code, map } = await LightningCSS.bundleAsync({
     filename,
     minify: true,
     sourceMap: sourcemap,
@@ -20,6 +19,29 @@ export default function (
           ...url,
           url: urls[path] ?? path,
         };
+      },
+    },
+    resolver: {
+      read(filePath) {
+        if (filePath.startsWith("file://")) {
+          filePath = filePath.substring("file://".length);
+        }
+
+        return Deno.readTextFile(filePath);
+      },
+      resolve(specifier, from) {
+        if (/^https?:/.test(specifier)) {
+          return specifier;
+        }
+
+        if (
+          !specifier.startsWith("/") && !specifier.startsWith("./") &&
+          !specifier.startsWith("../")
+        ) {
+          return import.meta.resolve(specifier);
+        }
+
+        return Path.resolve(Path.dirname(from), specifier);
       },
     },
   });
