@@ -86,6 +86,10 @@ const watchScript = `<script type="module">
 					window.location.reload();
 				}
 			});
+
+			window.addEventListener("beforeunload", () => {
+			  esrc.close();
+			});
     </script>
     `;
 
