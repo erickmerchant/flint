@@ -3,10 +3,10 @@ import { debounce } from "@std/async/debounce";
 import * as GitIgnore from "@cfa/gitignore-parser";
 
 export default async function (dist: string): Promise<Response> {
+  let watcher: Deno.FsWatcher;
   const gitignore = GitIgnore.compile(
     await (Deno.readTextFile(".gitignore").catch(() => "")),
   );
-  let watcher: Deno.FsWatcher;
   const result = new ReadableStream({
     async start(controller) {
       const enqueue = debounce(() => {

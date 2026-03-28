@@ -6,9 +6,8 @@ export default async function (
   html: Uint8Array<ArrayBuffer>,
   { urls }: FlintConfig,
 ): Promise<Uint8Array<ArrayBuffer>> {
-  const decoder = new TextDecoder();
-
   let output = "";
+  const decoder = new TextDecoder();
   const rewriter = new HTMLRewriter((outputChunk) => {
     output += decoder.decode(outputChunk);
   });
