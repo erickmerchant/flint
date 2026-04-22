@@ -13,7 +13,7 @@ export default async function (
     sourceMap: sourcemap,
     visitor: {
       Url(url) {
-        const path = Path.resolve(pathname, url.url);
+        const path = Path.resolve(Path.dirname(pathname), url.url);
 
         return {
           ...url,
