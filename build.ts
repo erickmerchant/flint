@@ -139,11 +139,7 @@ export default async function (config: FlintConfig) {
 
 		const fetch = serve(config);
 
-		export default {
-			async fetch(req: Request) {
-			  return fetch(req);
-			}
-		}
+		export default { fetch }
 	`,
   );
 
