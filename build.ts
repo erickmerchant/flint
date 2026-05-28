@@ -5,7 +5,7 @@ import rewrite from "./rewrite.ts";
 import os from "node:os";
 import { toUint8Array } from "./utils.ts";
 
-export default async function (config: FlintConfig) {
+export default async function (config: FlintConfig, parallel: boolean = false) {
   const urls: Record<string, string> = {};
   const etags: Record<string, string> = {};
 
@@ -45,7 +45,7 @@ export default async function (config: FlintConfig) {
   for (const [route, items] of routeItems) {
     const cacheResultPromises = [];
 
-    for (let cpus = os.cpus().length; cpus > 0; cpus--) {
+    for (let cpus = parallel ? os.cpus().length : 1; cpus > 0; cpus--) {
       let pathname = items.shift();
 
       if (!pathname) continue;

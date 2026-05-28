@@ -64,7 +64,6 @@ type App = {
   ) => App;
   run: () => void;
   config: () => FlintConfig;
-  fetch?: (request: Request) => Promise<Response> | Response;
 };
 
 const watchScript = `<script type="module">
@@ -143,10 +142,10 @@ export default function (dist?: string, src?: string): App {
     urls: {},
   };
   let index = 0;
-  let fetch;
 
   const flags = parseArgs(Deno.args, {
-    boolean: ["build", "dev"],
+    boolean: ["parallel", "build", "watch"],
+    string: ["port"],
   });
 
   const app: App = {
@@ -209,39 +208,39 @@ export default function (dist?: string, src?: string): App {
 
       await Fs.ensureDir(distDir);
 
-      if (flags.build) build(config);
+      if (flags.build) await build(config, flags.parallel);
+
+      if (flags.port) {
+        const fetch = serve(config);
+
+        Deno.serve({ port: +flags.port }, async (req: Request) => {
+          const url = new URL(req.url);
+
+          if (flags.watch && url.pathname === "/_watch") {
+            return watch(config.dist);
+          }
+
+          const response = await fetch(req);
+
+          if (response.headers.get("content-type") !== "text/html") {
+            return response;
+          }
+
+          let body = await response.text();
+
+          if (flags.watch) body += watchScript;
+
+          return new Response(body, {
+            status: response.status,
+            headers: response.headers,
+          });
+        });
+      }
     },
     config(): FlintConfig {
       return config;
     },
   };
-
-  if (flags.dev) {
-    app.fetch = async (req: Request) => {
-      const url = new URL(req.url);
-
-      if (url.pathname === "/_watch") {
-        return watch(config.dist);
-      }
-
-      fetch ??= serve(config);
-
-      const response = await fetch(req);
-
-      if (response.headers.get("content-type") !== "text/html") {
-        return response;
-      }
-
-      let body = await response.text();
-
-      body += watchScript;
-
-      return new Response(body, {
-        status: response.status,
-        headers: response.headers,
-      });
-    };
-  }
 
   return app;
 }
