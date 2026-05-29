@@ -40,7 +40,6 @@ export default (config: FlintConfig) => async (e: MessageEvent) => {
       dist: config.dist,
       urls: config.urls,
       sourcemap: false,
-      splitting: true,
     });
 
     if (result instanceof Response) return;

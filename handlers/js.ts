@@ -4,7 +4,7 @@ import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 
 export default async function (
-  { pathname, src, sourcemap, dist, splitting }: FlintRouteContext,
+  { pathname, src, sourcemap, dist }: FlintRouteContext,
 ): Promise<FlintRouteResponse> {
   let filename = Path.join(Deno.cwd(), src, pathname);
 
@@ -24,7 +24,6 @@ export default async function (
     minify: true,
     write: false,
     outputDir: Path.join(dist, "files", Path.dirname(pathname)),
-    codeSplitting: splitting,
   });
 
   let result;

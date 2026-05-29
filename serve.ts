@@ -83,7 +83,6 @@ export default function (
             dist: config.dist,
             urls: config.urls,
             sourcemap: false,
-            splitting: false,
           });
 
           if (result instanceof Response) return result;
@@ -138,7 +137,6 @@ export default function (
               dist: config.dist,
               urls: config.urls,
               sourcemap: false,
-              splitting: false,
             })
           ));
 

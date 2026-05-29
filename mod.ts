@@ -31,7 +31,6 @@ export type FlintRouteContext = {
   src: string;
   dist: string;
   sourcemap: boolean;
-  splitting: boolean;
   urls: Record<string, string>;
 };
 
@@ -144,7 +143,7 @@ export default function (dist?: string, src?: string): App {
   let index = 0;
 
   const flags = parseArgs(Deno.args, {
-    boolean: ["parallel", "build", "watch"],
+    boolean: ["build"],
     string: ["port"],
   });
 
@@ -208,7 +207,7 @@ export default function (dist?: string, src?: string): App {
 
       await Fs.ensureDir(distDir);
 
-      if (flags.build) await build(config, flags.parallel);
+      if (flags.build) await build(config);
 
       if (flags.port) {
         const fetch = serve(config);
@@ -216,7 +215,7 @@ export default function (dist?: string, src?: string): App {
         Deno.serve({ port: +flags.port }, async (req: Request) => {
           const url = new URL(req.url);
 
-          if (flags.watch && url.pathname === "/_watch") {
+          if (url.pathname === "/_watch") {
             return watch(config.dist);
           }
 
@@ -228,7 +227,7 @@ export default function (dist?: string, src?: string): App {
 
           let body = await response.text();
 
-          if (flags.watch) body += watchScript;
+          body += watchScript;
 
           return new Response(body, {
             status: response.status,
