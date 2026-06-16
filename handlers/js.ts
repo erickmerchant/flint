@@ -1,5 +1,4 @@
 import type { FlintRouteContext, FlintRouteResponse } from "../mod.ts";
-
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 
