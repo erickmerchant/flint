@@ -113,11 +113,11 @@ export default async function (
 
       await Fs.ensureDir(Path.dirname(path));
 
-      const uint8Array = await toUint8Array(result);
+      let uint8Array = await toUint8Array(result);
 
-      const rewritten = await rewrite(uint8Array, config);
+      uint8Array = await rewrite(uint8Array, config);
 
-      const str = new TextDecoder().decode(rewritten);
+      const str = new TextDecoder().decode(uint8Array);
 
       await Deno.writeTextFile(
         path,

@@ -118,11 +118,7 @@ export function glob(
   return async (publicDir: string) => {
     const items = [];
 
-    for await (
-      const { path } of Fs.expandGlob(
-        Path.join(publicDir, "**/*"),
-      )
-    ) {
+    for await (const { path } of Fs.expandGlob(Path.join(publicDir, "**/*"))) {
       const subpath = path.substring(publicDir.length);
       const match = pattern.exec(`file://${subpath}`);
 

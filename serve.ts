@@ -28,16 +28,10 @@ export default function (
 
       let pathname = url.pathname;
 
-      if (
-        config.etags != null &&
-        config.etags[pathname]
-      ) {
+      if (config.etags != null && config.etags[pathname]) {
         const ifNoneMatch = req.headers.get("If-None-Match");
 
-        if (
-          ifNoneMatch &&
-          ifNoneMatch == config.etags[pathname]
-        ) {
+        if (ifNoneMatch && ifNoneMatch == config.etags[pathname]) {
           return new Response(null, { status: 304 });
         } else {
           headers.ETag = config.etags[pathname];
@@ -94,10 +88,7 @@ export default function (
           let unint8Array = await toUint8Array(result);
 
           if (type === "text/html") {
-            unint8Array = await rewrite(
-              unint8Array,
-              config,
-            );
+            unint8Array = await rewrite(unint8Array, config);
           }
 
           const etag = await ETag.eTag(unint8Array, { weak: true });
@@ -126,28 +117,25 @@ export default function (
         const notFound = config.notFound;
 
         if (!notFoundResult) {
-          const result = await (Deno.readTextFile(
-            Path.join(distDir, "files/404.html"),
-          ).catch(() =>
-            notFound({
-              request: req,
-              params: {},
-              pathname: url.pathname,
-              src: config.src,
-              dist: config.dist,
-              urls: config.urls,
-              sourcemap: false,
-            })
-          ));
+          const result =
+            await (Deno.readTextFile(Path.join(distDir, "files/404.html"))
+              .catch(() =>
+                notFound({
+                  request: req,
+                  params: {},
+                  pathname: url.pathname,
+                  src: config.src,
+                  dist: config.dist,
+                  urls: config.urls,
+                  sourcemap: false,
+                })
+              ));
 
           if (result instanceof Response) return result;
 
           let unint8Array = await toUint8Array(result);
 
-          unint8Array = await rewrite(
-            unint8Array,
-            config,
-          );
+          unint8Array = await rewrite(unint8Array, config);
 
           notFoundResult = unint8Array;
         }
