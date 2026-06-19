@@ -93,13 +93,19 @@ const watchScript = `<script type="module">
 
 export function pattern(
   strs: TemplateStringsArray,
-  ..._vars: Array<never>
+  ...vars: Array<string>
 ): URLPattern {
-  if (strs.length === 1) {
-    return new URLPattern({ pathname: strs[0] });
+  let str = "";
+
+  for (let i = 0; i < strs.length; i++) {
+    str += strs[i];
+
+    if (vars[i]) {
+      str += vars[i];
+    }
   }
 
-  throw Error("Invalid URLPattern");
+  return new URLPattern({ pathname: str });
 }
 
 export function glob(
