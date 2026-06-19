@@ -1,6 +1,6 @@
 {
   "name": "@flint/framework",
-  "version": "0.36.2",
+  "version": "0.36.3",
   "license": "MIT",
   "exports": {
     ".": "./mod.ts",
@@ -11,8 +11,7 @@
     "./handlers/js": "./handlers/js.ts",
     "./handlers/json": "./handlers/json.ts",
     "./handlers/method": "./handlers/method.ts",
-    "./handlers/redirect": "./handlers/redirect.ts",
-    "./plugins/images": "./plugins/images.ts"
+    "./handlers/redirect": "./handlers/redirect.ts"
   },
   "imports": {
     "@cfa/gitignore-parser": "jsr:@cfa/gitignore-parser@^0.1.4",
@@ -25,8 +24,7 @@
     "@std/media-types": "jsr:@std/media-types@^1.1.0",
     "@std/path": "jsr:@std/path@^1.1.5",
     "html-rewriter-wasm": "npm:html-rewriter-wasm@^0.4.1",
-    "lightningcss": "npm:lightningcss@^1.32.0",
-    "sharp": "npm:sharp@^0.35.1"
+    "lightningcss": "npm:lightningcss@^1.32.0"
   },
   "unstable": ["bundle"],
   "compilerOptions": {
