@@ -1,17 +1,16 @@
 {
   "name": "@flint/framework",
-  "version": "0.36.6",
+  "version": "0.37.0",
   "license": "MIT",
   "exports": {
     ".": "./mod.ts",
-    "./serve": "./serve.ts",
     "./build": "./build.ts",
-    "./handlers/file": "./handlers/file.ts",
     "./handlers/css": "./handlers/css.ts",
+    "./handlers/file": "./handlers/file.ts",
     "./handlers/js": "./handlers/js.ts",
+    "./handlers/redirect": "./handlers/redirect.ts",
     "./handlers/json": "./handlers/json.ts",
-    "./handlers/method": "./handlers/method.ts",
-    "./handlers/redirect": "./handlers/redirect.ts"
+    "./serve": "./serve.ts"
   },
   "imports": {
     "@cfa/gitignore-parser": "jsr:@cfa/gitignore-parser@^0.1.4",
