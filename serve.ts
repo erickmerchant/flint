@@ -2,6 +2,7 @@ import type { FlintConfig } from "./mod.ts";
 import * as Path from "@std/path";
 import * as ETag from "@std/http/etag";
 import { contentType } from "@std/media-types";
+import * as MediaTypes from "@std/media-types";
 import rewrite from "./rewrite.ts";
 import { toUint8Array } from "./utils.ts";
 
@@ -15,7 +16,28 @@ export default function (
   const distDir = Path.join(Deno.cwd(), config.dist);
   let notFoundResult: Uint8Array<ArrayBuffer>;
 
-  return async function (req: Request): Promise<Response> {
+  return async (req: Request): Promise<Response> => {
+    const response = await fetch(req);
+
+    const contentType = response.headers.get("content-type");
+
+    if (!contentType) return response;
+
+    if (MediaTypes.getCharset(contentType) !== "UTF-8") return response;
+
+    const body = await response.blob();
+    const compressed = body.stream()
+      .pipeThrough(new CompressionStream("brotli"));
+
+    response.headers.append("Content-Encoding", "br");
+
+    return new Response(compressed, {
+      status: response.status,
+      headers: response.headers,
+    });
+  };
+
+  async function fetch(req: Request): Promise<Response> {
     const url = new URL(req.url);
 
     try {
@@ -152,5 +174,5 @@ export default function (
     }
 
     return new Response("Not Found", { status: 404 });
-  };
+  }
 }

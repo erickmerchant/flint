@@ -136,6 +136,10 @@ export function glob(
 }
 
 export default function (dist?: string, src?: string): App {
+  const flags = parseArgs(Deno.args, {
+    boolean: ["build"],
+    string: ["port"],
+  });
   const config: FlintConfig = {
     src: src ?? ".",
     dist: dist ?? "dist",
@@ -143,11 +147,6 @@ export default function (dist?: string, src?: string): App {
     urls: {},
   };
   let index = 0;
-
-  const flags = parseArgs(Deno.args, {
-    boolean: ["build"],
-    string: ["port"],
-  });
 
   const app: App = {
     route(
@@ -227,11 +226,18 @@ export default function (dist?: string, src?: string): App {
             return response;
           }
 
-          let body = await response.text();
+          const blob = await response.blob();
+          const decompressed = blob.stream()
+            .pipeThrough(new DecompressionStream("brotli"));
+
+          let body = await new Response(decompressed).text();
 
           body += watchScript;
 
-          return new Response(body, {
+          const compressed = new Blob([body]).stream()
+            .pipeThrough(new CompressionStream("brotli"));
+
+          return new Response(compressed, {
             status: response.status,
             headers: response.headers,
           });
