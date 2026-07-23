@@ -1,6 +1,6 @@
 {
   "name": "@flint/framework",
-  "version": "0.38.0",
+  "version": "0.38.1",
   "license": "MIT",
   "exports": {
     ".": "./mod.ts",
@@ -14,13 +14,13 @@
   },
   "imports": {
     "@cfa/gitignore-parser": "jsr:@cfa/gitignore-parser@^0.1.4",
+    "@remix-run/mime": "npm:@remix-run/mime@^0.4.2",
     "@std/async": "jsr:@std/async@^1.5.0",
     "@std/cli": "jsr:@std/cli@^1.0.32",
     "@std/crypto": "jsr:@std/crypto@^1.1.0",
     "@std/encoding": "jsr:@std/encoding@^1.0.11",
     "@std/fs": "jsr:@std/fs@^1.0.24",
     "@std/http": "jsr:@std/http@^1.1.2",
-    "@std/media-types": "jsr:@std/media-types@^1.1.0",
     "@std/path": "jsr:@std/path@^1.1.6",
     "html-rewriter-wasm": "npm:html-rewriter-wasm@^0.4.1",
     "lightningcss": "npm:lightningcss@^1.33.0"

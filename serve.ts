@@ -1,8 +1,7 @@
 import type { FlintConfig } from "./mod.ts";
 import * as Path from "@std/path";
 import * as ETag from "@std/http/etag";
-import { contentType } from "@std/media-types";
-import * as MediaTypes from "@std/media-types";
+import { detectContentType, isCompressibleMimeType } from "@remix-run/mime";
 import rewrite from "./rewrite.ts";
 import { toUint8Array } from "./utils.ts";
 
@@ -23,7 +22,7 @@ export default function (
 
     if (!contentType) return response;
 
-    if (MediaTypes.getCharset(contentType) !== "UTF-8") return response;
+    if (!isCompressibleMimeType(contentType)) return response;
 
     const body = await response.blob();
     const compressed = body.stream()
@@ -68,7 +67,7 @@ export default function (
         Path.join(Deno.cwd(), config.dist, "files", pathname),
         { read: true },
       )).readable;
-      const type = contentType(Path.extname(pathname)) ?? "text/plain";
+      const type = detectContentType(Path.extname(pathname)) ?? "text/plain";
 
       headers["Content-Type"] = type;
 
@@ -105,7 +104,7 @@ export default function (
 
           const type = url.pathname.endsWith("/")
             ? "text/html"
-            : (contentType(Path.extname(url.pathname)) ?? "text/plain");
+            : (detectContentType(Path.extname(url.pathname)) ?? "text/plain");
 
           let unint8Array = await toUint8Array(result);
 
