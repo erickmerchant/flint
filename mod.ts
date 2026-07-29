@@ -2,7 +2,7 @@ import * as Fs from "@std/fs";
 import * as Path from "@std/path";
 import { parseArgs } from "@std/cli/parse-args";
 import build from "./build.ts";
-import filePlugin from "./handlers/file.ts";
+import fileHandler from "./handlers/file.ts";
 import watch from "./watch.ts";
 import serve from "./serve.ts";
 
@@ -50,17 +50,20 @@ export type FlintCacheItem =
   | Array<string>
   | ((dir: string) => Array<string> | Promise<Array<string>>);
 
-type App = {
+export type FlintApplication = {
   route: (
     pattern: string | URLPattern | FlintRouteHandler,
     handler?: FlintRouteHandler,
     cache?: FlintCacheItem,
-  ) => App;
+  ) => FlintApplication;
   file: (
     pattern: string | URLPattern,
     handler?: FlintRouteHandler,
     cache?: FlintCacheItem,
-  ) => App;
+  ) => FlintApplication;
+  plugin: (
+    cb: (app: FlintApplication) => void,
+  ) => FlintApplication;
   run: () => void;
   config: () => FlintConfig;
 };
@@ -135,7 +138,7 @@ export function glob(
   };
 }
 
-export default function (dist?: string, src?: string): App {
+export default function (dist?: string, src?: string): FlintApplication {
   const flags = parseArgs(Deno.args, {
     boolean: ["build"],
     string: ["port"],
@@ -148,12 +151,12 @@ export default function (dist?: string, src?: string): App {
   };
   let index = 0;
 
-  const app: App = {
+  const app: FlintApplication = {
     route(
       pattern: string | URLPattern | FlintRouteHandler,
       handler?: FlintRouteHandler,
       cache?: FlintCacheItem,
-    ): App {
+    ): FlintApplication {
       if (typeof pattern === "function" && handler == null) {
         config.notFound = pattern;
       } else if (typeof pattern !== "function") {
@@ -161,7 +164,7 @@ export default function (dist?: string, src?: string): App {
           cache = [pattern];
         }
 
-        handler ??= filePlugin;
+        handler ??= fileHandler;
 
         config.routes.push({
           index: index++,
@@ -178,9 +181,9 @@ export default function (dist?: string, src?: string): App {
       pattern: string | URLPattern,
       handler?: FlintRouteHandler,
       cache?: FlintCacheItem,
-    ): App {
+    ): FlintApplication {
       if (typeof pattern !== "function") {
-        handler ??= filePlugin;
+        handler ??= fileHandler;
 
         if (cache == null) {
           if (pattern instanceof URLPattern) {
@@ -243,6 +246,11 @@ export default function (dist?: string, src?: string): App {
           });
         });
       }
+    },
+    plugin(cb: (app: FlintApplication) => void): FlintApplication {
+      cb(app);
+
+      return app;
     },
     config(): FlintConfig {
       return config;
