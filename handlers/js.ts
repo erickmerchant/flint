@@ -3,7 +3,7 @@ import * as Path from "@std/path";
 import * as Fs from "@std/fs";
 
 export default async function (
-  { pathname, src, sourcemap, dist }: FlintRouteContext,
+  { pathname, src, sourcemap }: FlintRouteContext,
 ): Promise<FlintRouteResponse> {
   let filename = Path.join(Deno.cwd(), src, pathname);
 
@@ -22,19 +22,14 @@ export default async function (
     platform: "browser",
     minify: true,
     write: false,
-    outputDir: Path.join(dist, "files", Path.dirname(pathname)),
   });
 
   let result;
 
-  for (const file of bundle.outputFiles!) {
-    if (!result) {
-      result = file.text();
-    } else {
-      await Fs.ensureDir(Path.join(dist, "files", Path.dirname(pathname)));
+  if (bundle.outputFiles) {
+    const [file] = bundle.outputFiles;
 
-      await Deno.writeTextFile(file.path, file.text());
-    }
+    result = file.text();
   }
 
   return result ?? "";
