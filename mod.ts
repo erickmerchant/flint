@@ -207,7 +207,7 @@ export default function (dist?: string, src?: string): FlintApplication {
     async run() {
       const distDir = Path.join(Deno.cwd(), config.dist);
 
-      await Fs.emptyDir(distDir);
+      await Fs.emptyDir(Path.join(distDir, "files"));
 
       await Fs.ensureDir(distDir);
 
