@@ -8,32 +8,32 @@ import * as Semver from "@std/semver";
 const links: Map<string, string> = new Map();
 
 try {
-  const text = await Deno.readTextFile(Path.join(Deno.cwd(), "deno.json"));
+  const text = Deno.readTextFileSync(Path.join(Deno.cwd(), "deno.json"));
   const json = JSON.parse(text);
 
   for (const l of json.links ?? []) {
-    const text = await Deno.readTextFile(Path.join(Deno.cwd(), l, "deno.json"));
+    const text = Deno.readTextFileSync(Path.join(Deno.cwd(), l, "deno.json"));
     const json = JSON.parse(text);
 
     if (json.name) {
       links.set(json.name, Path.join(Deno.cwd(), l));
     }
   }
-} finally {
-  //
+} catch (_e) {
+  // console.error(_e);
 }
 
 const currentVersions: Map<string, string> = new Map();
 
 try {
-  const text = await Deno.readTextFile(Path.join(Deno.cwd(), "deno.lock"));
+  const text = Deno.readTextFileSync(Path.join(Deno.cwd(), "deno.lock"));
   const json = JSON.parse(text);
 
   for (const [s, v] of Object.entries(json.specifiers ?? {})) {
     currentVersions.set(s, v as string);
   }
-} finally {
-  //
+} catch (_e) {
+  // console.error(_e);
 }
 
 export default async function (
@@ -104,7 +104,7 @@ export default async function (
               return result;
             }
           } else {
-            throw new Error("not found");
+            return "";
           }
         }
 
