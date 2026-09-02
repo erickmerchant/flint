@@ -19,18 +19,6 @@ export default async function (
   const distDir = Path.join(Deno.cwd(), config.dist);
   const publicDir = Path.join(Deno.cwd(), config.src);
 
-  await Deno.writeTextFile(
-    Path.join(distDir, "builder.ts"),
-    `
-		import {onmessage} from "@flint/framework/build";
-		import app from "${
-      Path.relative(distDir, Path.join(Deno.cwd(), "flint.ts"))
-    }";
-
-		self.onmessage = onmessage(app.config())
-	`,
-  );
-
   const routeItems: Map<FlintRoute, Array<string>> = new Map();
 
   for (
@@ -57,7 +45,7 @@ export default async function (
 
       const { resolve, promise } = Promise.withResolvers();
       const builder = new Worker(
-        new URL(`file:///${Path.join(distDir, "builder.ts")}`).href,
+        import.meta.url,
         {
           type: "module",
         },
@@ -150,81 +138,80 @@ export default async function (
   return { urls, etags };
 }
 
-export function onmessage(
-  config: FlintConfig,
-): (e: MessageEvent) => Promise<void> {
-  return async (e: MessageEvent) => {
-    let { index, pathname, urls }: {
-      index: number;
-      pathname: string;
-      urls: Record<string, string>;
-    } = e.data;
+self.onmessage = async (e: MessageEvent) => {
+  const { default: flint } = await import(Path.join(Deno.cwd(), "flint.ts"));
+  const config: FlintConfig = flint.config();
 
-    config.urls = urls;
+  let { index, pathname, urls }: {
+    index: number;
+    pathname: string;
+    urls: Record<string, string>;
+  } = e.data;
 
-    const route = config.routes.find((r) => r.index === index);
-    const distDir = Path.join(Deno.cwd(), config.dist);
-    let match: boolean | URLPatternResult | null = false;
+  config.urls = urls;
 
-    if (!route) {
-      return;
+  const route = config.routes.find((r) => r.index === index);
+  const distDir = Path.join(Deno.cwd(), config.dist);
+  let match: boolean | URLPatternResult | null = false;
+
+  if (!route) {
+    return;
+  }
+
+  if (typeof route.pattern === "string") {
+    match = route.pattern === pathname;
+  } else {
+    match = route.pattern.exec(`file://${pathname}`);
+  }
+
+  if (match) {
+    const request = new Request(`file://${pathname}`);
+    const result = await route.handler({
+      request,
+      params: match === true ? {} : (match.pathname.groups ?? {}),
+      pathname,
+      src: config.src,
+      dist: config.dist,
+      urls: config.urls,
+      sourcemap: false,
+    });
+
+    if (result instanceof Response) return;
+
+    let unint8Array = await toUint8Array(result);
+
+    if (pathname.endsWith("/")) {
+      pathname += "index.html";
     }
 
-    if (typeof route.pattern === "string") {
-      match = route.pattern === pathname;
-    } else {
-      match = route.pattern.exec(`file://${pathname}`);
-    }
+    const buffer = await crypto.subtle.digest("SHA-256", unint8Array);
+    const hash = encodeBase32(buffer).substring(0, 8);
 
-    if (match) {
-      const request = new Request(`file://${pathname}`);
-      const result = await route.handler({
-        request,
-        params: match === true ? {} : (match.pathname.groups ?? {}),
-        pathname,
-        src: config.src,
-        dist: config.dist,
-        urls: config.urls,
-        sourcemap: false,
+    if (route.fingerprint) {
+      pathname = Path.format({
+        root: "/",
+        dir: Path.dirname(pathname),
+        ext: Path.extname(pathname),
+        name: `${Path.basename(pathname, Path.extname(pathname))}-${hash}`,
       });
-
-      if (result instanceof Response) return;
-
-      let unint8Array = await toUint8Array(result);
-
-      if (pathname.endsWith("/")) {
-        pathname += "index.html";
-      }
-
-      const buffer = await crypto.subtle.digest("SHA-256", unint8Array);
-      const hash = encodeBase32(buffer).substring(0, 8);
-
-      if (route.fingerprint) {
-        pathname = Path.format({
-          root: "/",
-          dir: Path.dirname(pathname),
-          ext: Path.extname(pathname),
-          name: `${Path.basename(pathname, Path.extname(pathname))}-${hash}`,
-        });
-      }
-
-      const filepath = Path.join(distDir, "files", pathname);
-
-      await Fs.ensureDir(Path.dirname(filepath));
-
-      if (filepath.endsWith(".html")) {
-        unint8Array = await rewrite(unint8Array, config);
-      }
-
-      const etag = await ETag.eTag(unint8Array, { weak: true });
-
-      if (route.fingerprint) {
-        postMessage(pathname);
-      } else {
-        postMessage(etag);
-      }
-
-      await Deno.writeFile(filepath, unint8Array);
     }
-  };
-}
+
+    const filepath = Path.join(distDir, "files", pathname);
+
+    await Fs.ensureDir(Path.dirname(filepath));
+
+    if (filepath.endsWith(".html")) {
+      unint8Array = await rewrite(unint8Array, config);
+    }
+
+    const etag = await ETag.eTag(unint8Array, { weak: true });
+
+    if (route.fingerprint) {
+      postMessage(pathname);
+    } else {
+      postMessage(etag);
+    }
+
+    await Deno.writeFile(filepath, unint8Array);
+  }
+};
