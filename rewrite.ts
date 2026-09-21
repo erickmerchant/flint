@@ -101,19 +101,21 @@ export default async function (
       if (value) {
         el.setAttribute(
           "srcset",
-          value.split(",").map((src: string) => {
-            src = src.trim();
+          value.split(",")
+            .map((src: string) => {
+              src = src.trim();
 
-            let [path, ...desc] = src.split(" ");
+              let [path, ...desc] = src.split(" ");
 
-            if (path) {
-              path = urls[path] ?? path;
+              if (path) {
+                path = urls[path] ?? path;
 
-              return [path, ...desc].join(" ");
-            }
+                return [path, ...desc].join(" ");
+              }
 
-            return src;
-          }).join(","),
+              return src;
+            })
+            .join(","),
         );
       }
     },
