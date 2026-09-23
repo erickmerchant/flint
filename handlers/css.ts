@@ -1,9 +1,7 @@
 import type { FlintRouteContext, FlintRouteResponse } from "../mod.ts";
 import * as Path from "@std/path";
-import * as Fs from "@std/fs";
 import * as LightningCSS from "lightningcss";
 import { encodeBase64 } from "@std/encoding/base64";
-import * as Semver from "@std/semver";
 
 const links: Map<string, string> = new Map();
 
@@ -37,7 +35,7 @@ try {
 }
 
 export default async function (
-  { src, pathname, urls, sourcemap, dist }: FlintRouteContext,
+  { src, pathname, urls, sourcemap }: FlintRouteContext,
 ): Promise<FlintRouteResponse> {
   const filename = Path.join(Deno.cwd(), src, pathname);
   const { code, map } = await LightningCSS.bundleAsync({
@@ -55,59 +53,7 @@ export default async function (
       },
     },
     resolver: {
-      async read(filePath) {
-        if (filePath.startsWith("jsr:")) {
-          const specifier = filePath.substring("jsr:/".length);
-          const split = specifier.split("/");
-          const fileIndex = specifier.startsWith("@") ? 2 : 1;
-          const file = split.slice(fileIndex).join("/");
-          let name = split.slice(0, fileIndex).join("/");
-          let matchedVersion = currentVersions.get(name);
-
-          if (!matchedVersion) {
-            const nameParts = name.split("@");
-            const targetVersion = Semver.parseRange(nameParts.pop() as string);
-
-            name = nameParts.join("@");
-
-            const meta = await fetch(`https://jsr.io/${name}/meta.json`).then((
-              res,
-            ) => res.json());
-            const versions = Object.keys(meta.versions).map((v) =>
-              Semver.parse(v)
-            );
-
-            const match = Semver.maxSatisfying(versions, targetVersion);
-
-            if (match) {
-              matchedVersion = Semver.format(match);
-            }
-          }
-
-          if (matchedVersion) {
-            const cacheFile = Path.join(
-              dist,
-              `cache/${name}/${matchedVersion}/${file}`,
-            );
-
-            try {
-              return await Deno.readTextFile(cacheFile);
-            } catch {
-              const result = await fetch(
-                `https://jsr.io/${name}/${matchedVersion}/${file}`,
-              ).then((res) => res.text());
-
-              await Fs.ensureDir(Path.dirname(cacheFile));
-
-              await Deno.writeTextFile(cacheFile, result);
-
-              return result;
-            }
-          } else {
-            return "";
-          }
-        }
-
+      read(filePath) {
         if (filePath.startsWith("file://")) {
           filePath = filePath.substring("file://".length);
         }
