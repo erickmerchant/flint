@@ -8,6 +8,7 @@ import { toUint8Array } from "./utils.ts";
 const fingerprintURLPattern = new URLPattern({
   pathname: "*-([A-Z2-7]{8}).*",
 });
+const encodingMap = { brotli: "br", gzip: "gzip" };
 
 export default function (
   config: FlintConfig,
@@ -22,13 +23,24 @@ export default function (
 
     if (!contentType) return response;
 
-    if (!isCompressibleMimeType(contentType)) return response;
+    const acceptsHeader = (req.headers.get("accept-encoding") ?? "")
+      .split(", ");
+    const encoding = acceptsHeader.includes("br")
+      ? "brotli"
+      : acceptsHeader.includes("gzip")
+      ? "gzip"
+      : false;
+
+    if (!encoding || !isCompressibleMimeType(contentType)) {
+      return response;
+    }
 
     const body = await response.blob();
-    const compressed = body.stream()
-      .pipeThrough(new CompressionStream("brotli"));
+    const compressed = body.stream().pipeThrough(
+      new CompressionStream(encoding),
+    );
 
-    response.headers.append("Content-Encoding", "br");
+    response.headers.append("Content-Encoding", encodingMap[encoding]);
 
     return new Response(compressed, {
       status: response.status,

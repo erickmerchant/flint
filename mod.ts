@@ -223,27 +223,46 @@ export default function (dist?: string, src?: string): FlintApplication {
             return watch(config.dist);
           }
 
+          const acceptsHeader = req.headers.get("accept-encoding")
+            ?.split(",")?.map((p) => p.trim()) ?? [];
+          const encoding = acceptsHeader.includes("br")
+            ? "brotli"
+            : acceptsHeader.includes("gzip")
+            ? "gzip"
+            : false;
+
           const response = await fetch(req);
 
           if (response.headers.get("content-type") !== "text/html") {
             return response;
           }
 
-          const blob = await response.blob();
-          const decompressed = blob.stream()
-            .pipeThrough(new DecompressionStream("brotli"));
+          if (encoding) {
+            const blob = await response.blob();
+            const decompressed = blob.stream()
+              .pipeThrough(new DecompressionStream(encoding));
 
-          let body = await new Response(decompressed).text();
+            let body = await new Response(decompressed).text();
 
-          body += watchScript;
+            body += watchScript;
 
-          const compressed = new Blob([body]).stream()
-            .pipeThrough(new CompressionStream("brotli"));
+            const compressed = new Blob([body]).stream()
+              .pipeThrough(new CompressionStream(encoding));
 
-          return new Response(compressed, {
-            status: response.status,
-            headers: response.headers,
-          });
+            return new Response(compressed, {
+              status: response.status,
+              headers: response.headers,
+            });
+          } else {
+            let body = await response.text();
+
+            body += watchScript;
+
+            return new Response(body, {
+              status: response.status,
+              headers: response.headers,
+            });
+          }
         });
       }
     },
