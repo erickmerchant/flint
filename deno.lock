@@ -17,7 +17,7 @@
     "jsr:@std/path@^1.1.5": "1.1.6",
     "jsr:@std/path@^1.1.6": "1.1.6",
     "jsr:@std/streams@^1.2.0": "1.2.0",
-    "npm:@remix-run/mime@~0.4.3": "0.4.3",
+    "npm:@remix-run/mime@1": "1.0.0",
     "npm:@types/node@*": "22.15.15",
     "npm:html-rewriter-wasm@~0.4.1": "0.4.1",
     "npm:lightningcss@^1.33.0": "1.33.0"
@@ -101,8 +101,8 @@
     }
   },
   "npm": {
-    "@remix-run/mime@0.4.3": {
-      "integrity": "sha512-O4mcl72Mn4R4VjLczsmkYIxZVQs9DlRKTLZrkJzZTl2VS3BKcRBZp5K+ezhL2qg2mlDtvxGGuJ2Eq8TelZXSEA=="
+    "@remix-run/mime@1.0.0": {
+      "integrity": "sha512-oOPL/TMsNIbfNpSzjtZhTmIeqfgCYM3mQOYs13UsHKTmgLRgKfiNz4B1q/SN3juhCrtPwDwjwUEx1Vn8vp9SEg=="
     },
     "@types/node@22.15.15": {
       "integrity": "sha512-R5muMcZob3/Jjchn5LcO8jdKwSCbzqmPB6ruBxMcf9kbxtniZHP327s6C37iOfuw8mbKK3cAQa7sEl7afLrQ8A==",
@@ -204,7 +204,7 @@
       "jsr:@std/fs@^1.0.24",
       "jsr:@std/http@^1.1.4",
       "jsr:@std/path@^1.1.6",
-      "npm:@remix-run/mime@~0.4.3",
+      "npm:@remix-run/mime@1",
       "npm:html-rewriter-wasm@~0.4.1",
       "npm:lightningcss@^1.33.0"
     ]
