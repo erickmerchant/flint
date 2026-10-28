@@ -4,20 +4,20 @@ import * as LightningCSS from "lightningcss";
 import { encodeBase64 } from "@std/encoding/base64";
 
 export default async function (
-  { src, pathname, urls, sourcemap }: FlintRouteContext,
+  { pathname, config }: FlintRouteContext,
 ): Promise<FlintRouteResponse> {
-  const filename = Path.join(Deno.cwd(), src, pathname);
+  const filename = Path.join(Deno.cwd(), config.src, pathname);
   const { code, map } = await LightningCSS.bundleAsync({
     filename,
     minify: true,
-    sourceMap: sourcemap,
+    sourceMap: config.dev,
     visitor: {
       Url(url) {
         const path = Path.resolve(Path.dirname(pathname), url.url);
 
         return {
           ...url,
-          url: urls[path] ?? path,
+          url: config.urls[path] ?? path,
         };
       },
     },
@@ -52,7 +52,7 @@ export default async function (
     },
   });
 
-  if (sourcemap) {
+  if (config.dev) {
     let encodedMap = "";
 
     if (map) {

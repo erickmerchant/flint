@@ -13,6 +13,7 @@ export type FlintConfig = {
   notFound?: FlintRouteHandler;
   urls: Record<string, string>;
   etags?: Record<string, string>;
+  dev: boolean;
 };
 
 export type FlintParams = Record<string, string | undefined>;
@@ -28,10 +29,7 @@ export type FlintRouteContext = {
   request: Request;
   params: FlintParams;
   pathname: string;
-  src: string;
-  dist: string;
-  sourcemap: boolean;
-  urls: Record<string, string>;
+  config: FlintConfig;
 };
 
 export type FlintRouteHandler = (context: FlintRouteContext) =>
@@ -140,7 +138,7 @@ export function glob(
 
 export default function (dist?: string, src?: string): FlintApplication {
   const flags = parseArgs(Deno.args, {
-    boolean: ["build"],
+    boolean: ["build", "dev"],
     string: ["port"],
   });
   const config: FlintConfig = {
@@ -148,6 +146,7 @@ export default function (dist?: string, src?: string): FlintApplication {
     dist: dist ?? "dist",
     routes: [],
     urls: {},
+    dev: flags.dev ?? false,
   };
   let index = 0;
 
@@ -233,7 +232,9 @@ export default function (dist?: string, src?: string): FlintApplication {
 
           const response = await fetch(req);
 
-          if (response.headers.get("content-type") !== "text/html") {
+          if (
+            response.headers.get("content-type") !== "text/html" || !config.dev
+          ) {
             return response;
           }
 

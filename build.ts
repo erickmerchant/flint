@@ -102,10 +102,7 @@ export default async function (
       request: new Request("file://404.html"),
       params: {},
       pathname: "404.html",
-      src: config.src,
-      dist: config.dist,
-      urls: config.urls,
-      sourcemap: false,
+      config: config,
     });
 
     if (!(result instanceof Response)) {
@@ -182,10 +179,7 @@ export function onmessage(
         request,
         params: match === true ? {} : (match.pathname.groups ?? {}),
         pathname,
-        src: config.src,
-        dist: config.dist,
-        urls: config.urls,
-        sourcemap: false,
+        config,
       });
 
       if (result instanceof Response) return;

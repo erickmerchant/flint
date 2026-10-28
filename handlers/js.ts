@@ -1,16 +1,17 @@
 import type { FlintRouteContext, FlintRouteResponse } from "../mod.ts";
 import * as Path from "@std/path";
 import * as Fs from "@std/fs";
+import { minify } from "terser";
 
 export default async function (
-  { pathname, src, sourcemap }: FlintRouteContext,
+  { pathname, config }: FlintRouteContext,
 ): Promise<FlintRouteResponse> {
-  let filename = Path.join(Deno.cwd(), src, pathname);
+  let filename = Path.join(Deno.cwd(), config.src, pathname);
 
   if (!await Fs.exists(filename)) {
     filename = Path.normalize(Path.format({
       root: "/",
-      dir: Path.join(Deno.cwd(), src, Path.dirname(pathname)),
+      dir: Path.join(Deno.cwd(), config.src, Path.dirname(pathname)),
       ext: ".ts",
       name: Path.basename(pathname, Path.extname(pathname)),
     }));
@@ -18,9 +19,9 @@ export default async function (
 
   const bundle = await Deno.bundle({
     entrypoints: [filename],
-    sourcemap: sourcemap ? "inline" : undefined,
+    sourcemap: config.dev ? "inline" : undefined,
     platform: "browser",
-    minify: true,
+    minify: false,
     write: false,
   });
 
@@ -30,6 +31,16 @@ export default async function (
     const [file] = bundle.outputFiles;
 
     result = file.text();
+
+    const minified = await minify(result, {
+      module: true,
+      ecma: 2025,
+      sourceMap: config.dev
+        ? { filename, content: "inline", url: "inline" }
+        : undefined,
+    });
+
+    result = minified.code;
   }
 
   return result ?? "";

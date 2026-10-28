@@ -106,10 +106,7 @@ export default function (
             request: req,
             params: match === true ? {} : (match.pathname.groups ?? {}),
             pathname: url.pathname,
-            src: config.src,
-            dist: config.dist,
-            urls: config.urls,
-            sourcemap: false,
+            config,
           });
 
           if (result instanceof Response) return result;
@@ -157,10 +154,7 @@ export default function (
                   request: req,
                   params: {},
                   pathname: url.pathname,
-                  src: config.src,
-                  dist: config.dist,
-                  urls: config.urls,
-                  sourcemap: false,
+                  config,
                 })
               ));
 
