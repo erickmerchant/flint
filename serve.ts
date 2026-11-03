@@ -92,7 +92,11 @@ export default function (
     }
 
     try {
-      for (const route of config.routes) {
+      for (
+        const route of config.routes.filter((
+          route,
+        ) => config.dev || (route.cache == null || route.cache.length === 0))
+      ) {
         let match: boolean | URLPatternResult | null = false;
 
         if (typeof route.pattern === "string") {
